@@ -1,0 +1,24 @@
+Specifiche
+
+controller:
+- updateConf(): ogni tot, il controller verifica se la configurazione è cambiato sul file della configurazione attiva. Se è il controllo risulta positivo, allora notifica agli switch il cambio dei percorsi
+
+wrapper:
+- listNetElements(): elenca tutti i dispositivi e link sulla rete
+- listSlicingProfiles(): elenca tutti i profili salvati, e quali dispositivi ne fanno parte
+- listActiveProfiles(): mostra la configurazione attuale della rete, con la divisione delle diverse slices
+- createNewProfile(): passando come argomenti il nome del profilo e la lista dei device che faranno parte della nuova slice, il programma calcola come modificare i link per rispettare i vincoli e salva la configurazione come nuovo profilo
+- toggleProfile(): modifica il file della configurazione attiva rispettando il profilo assegnato (o disattivato)
+
+file di configurazione attiva:
+0
+1: [(1,2),(2,1),(3,4),(4,3)]
+2: [(1,3),(3,1),(2,4),(4,2)]
+
+- il valore della prima riga è un identificatore della versione della configurazione, in questo modo la funzione updateConf() può mantenere nei suoi registri l'ultimo codice, e poi confrontarlo con la sola prima riga del file per vedere se c'è stata una modifica
+- le righe successive invece sono una scrittura pari pari della struttura dati usata dal controller per effettuare il routing, in questo modo si riduce al minimo la conversione e di conseguenza il tempo di down
+
+struttura dati dei profili:
+name: (ovvio)
+devices: (lista dei devices compresi nel profilo)
+configuration: (calcolata nel momento della creazione, è la struttura dati contenuta nel "file di configurazione attiva")
