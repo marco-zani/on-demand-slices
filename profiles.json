@@ -1,0 +1,71 @@
+[
+  {
+    "slice1": {
+      "id": 1,
+      "links": [
+        {
+          "source": "h1",
+          "target": "s1"
+        },
+        {
+          "source": "h2",
+          "target": "s1"
+        },
+        {
+          "source": "s1",
+          "target": "s2"
+        },
+        {
+          "source": "s2",
+          "target": "h3"
+        },
+        {
+          "source": "s2",
+          "target": "h4"
+        }
+      ]
+    }
+  },
+  {
+    "slice2": {
+      "id": 2,
+      "links": [
+        {
+          "source": "h1",
+          "target": "s1"
+        },
+        {
+          "source": "s1",
+          "target": "s2"
+        },
+        {
+          "source": "h4",
+          "target": "s2"
+        }
+      ]
+    }
+  },
+  {
+    "slice3": {
+      "id": 3,
+      "links": [
+        {
+          "source": "h01",
+          "target": "h02"
+        },
+        {
+          "source": "h03",
+          "target": "h04"
+        },
+        {
+          "source": "h02",
+          "target": "h04"
+        },
+        {
+          "source": "h01",
+          "target": "h03"
+        }
+      ]
+    }
+  }
+]
