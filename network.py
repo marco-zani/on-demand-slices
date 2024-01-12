@@ -49,13 +49,22 @@ topos = {"topology":(lambda: Topology())}
 def listItems(net):
     nodes = list(net.items())
     links = []
+    possLinks = []      
     for src in nodes:
         for dst in nodes:
-            link = net.linksBetween(src[1],dst[1])
-            if link != [] and (dst[0],src[0]) not in links:
-                links.append((src[0],dst[0]))
+            if (dst[1],src[1]) not in possLinks:
+                possLinks.append((src[1], dst[1]))
+    
+    for src, dst in possLinks:
+        link = net.linksBetween(src,dst)
+        if link != []:
+            for el in link:
+                links.append(str(el).replace('<', '').replace('>','').replace('-', ' '))
+
+    f = open("links",'w')
     for link in links:
-        print(link)
+        f.write(link+'\n')
+    f.close()
 
 if __name__ == "__main__":
     topo = Topology()
@@ -73,4 +82,3 @@ if __name__ == "__main__":
     listItems(net)
     CLI(net)
     net.stop()
-

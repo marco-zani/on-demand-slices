@@ -6,7 +6,7 @@ This project is in it's embrio phase. The objective is to create a way enable an
 ## Marco
 - [ ] multi-processing
   - [ ] funzione send() per inviare la configurazione dallo slicer al controller
-- [ ] creazione file contenente i links
+- [X] creazione file contenente i links
 
 ## Francesco
 - [ ] funzione listNetElements(): elenca tutti i dispositivi e link sulla rete
