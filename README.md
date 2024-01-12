@@ -10,9 +10,9 @@ This project is in it's embrio phase. The objective is to create a way enable an
 
 ## Francesco
 - [ ] funzione listNetElements(): elenca tutti i dispositivi e link sulla rete
-- [ ] listSlicingProfiles(): elenca tutti i profili salvati, e quali dispositivi ne fanno parte 
-- [ ] listActiveProfiles(): mostra la configurazione attuale della rete, con la divisione delle diverse slices 
-## Alessio
-- [ ] createNewProfile():
-  - [ ] convert profile into controller configuration
+- [ ] listSlicingProfiles(): elenca tutti i profili salvati, e quali dispositivi ne fanno parte
+- [ ] listActiveProfiles(): mostra la configurazione attuale della rete, con la divisione delle diverse slices
 - [ ] toggleProfile(): modifica la configurazione attiva rispettando il profilo assegnato (o disattivato)
+## Alessio
+- [ ] createNewProfile(): --> OK
+  - [ ] convert profile into controller configuration
