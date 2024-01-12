@@ -44,5 +44,29 @@
         }
       ]
     }
+  },
+  {
+    "slice3": {
+      "id": 3,
+      "links": [
+        {
+          "source": "h01",
+          "target": "h02"
+        },
+        {
+          "source": "h03",
+          "target": "h04"
+        },
+        {
+          "source": "h02",
+          "target": "h04"
+        },
+        {
+          "source": "h01",
+          "target": "h03"
+        }
+      ]
+    }
   }
 ]
+

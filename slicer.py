@@ -1,7 +1,12 @@
 import json
+from time import sleep
+
+#Variabile globale per slice attiva, valore default
+sliceActive = 1
 
 def acceptCommand():
-    choice = input("Select function:\n1 - listNetElements\n2 - listSlicingProfiles\n3 - listActiveProfiles\n4 - createNewProfile\n55555 - toggleProfile\n0 - exit\n")
+    choice = input("\nSelect function:\n1 - listNetElements\n2 - listSlicingProfiles\n3 - listActiveProfiles\n4 - createNewProfile\n5 - toggleProfile\n0 - exit\n")
+
     if choice == "0":
         return False
     elif choice == "1":
@@ -17,15 +22,41 @@ def acceptCommand():
         createNewProfile()
         return True
     elif choice == "5":
-        toggleProfile(2)
+        toggleProfile()
         return True
 
 def listNetElements():
-    print("Listing elements...")
+    print("\nListing defualt network")
+    file_path = 'networkFile.json'
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+
+    #Ciclo while che stampa ogni elemento del file
+    i = 0
+    while i < len(data):
+        print(json.dumps(data[i],indent=4))
+        i+=1
+
 def listSlicingProfiles():
-    print("Listing profiles...")
+    print("\nListing all profiles")
+    file_path = 'profiles.json'
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+
+    #Ciclo while che stampa ogni elemento del file
+    i = 0
+    while i < len(data):
+        print(json.dumps(data[i],indent=4))
+        i+=1
+
 def listActiveProfiles():
-    print("Listing profiles...")
+    print("\nListing active profiles")
+    file_path = 'profiles.json'
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+
+    #Stampa dati relativi alla variabile globale selezionata
+    print(json.dumps(data[sliceActive-1],indent=4))
 
 def uploadData(file_path):
     with open(file_path, 'r') as file:
@@ -77,13 +108,11 @@ def createNewProfile():
     print("Aggiunta nuova slice con id -> " + str(next_id))
 
 
+def toggleProfile():
+    profileId = input("\nQuale slice vuoi attivare?:")
+    global sliceActive 
+    sliceActive = int(profileId)
+    print("\nActivating profile n." + str(sliceActive))
 
-def toggleProfile(profileId):
-    print("Activating profile n." + str(profileId))
-
-def start():
-    while(acceptCommand()):
-        a = 0
-
-if __name__ == "__main__":
-    start(1)
+while(acceptCommand()):
+    sleep(0.5)
