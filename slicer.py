@@ -10,7 +10,7 @@ def uploadData(file_path):
 def saveData(data, file_path):
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=2)
-   
+
 class Slicer:
     def __init__(self, send) -> None:
         self.send = send
@@ -35,7 +35,7 @@ class Slicer:
             self.createNewProfile()
             return True
         elif choice == "5":
-            self.toggleProfile()           
+            self.toggleProfile()
             return True
 
     def listNetElements():
@@ -62,7 +62,7 @@ class Slicer:
             print(json.dumps(data[i],indent=4))
             i+=1
 
-    def listActiveProfiles():
+    def listActiveProfiles(self):
         print("\nListing active profiles")
         file_path = 'profiles.json'
         with open(file_path, 'r') as file:
@@ -76,7 +76,7 @@ class Slicer:
         # Carica i dati dal file
         file_path = 'profiles.json'
         dati_originali = uploadData(file_path)
-        
+
         # Get id attuale massimo
         max_id = max(entry[next(iter(entry))]['id'] for entry in dati_originali)
         next_id = max_id + 1
@@ -111,15 +111,14 @@ class Slicer:
         saveData(dati_originali, file_path)
 
         print("Aggiunta nuova slice con id -> " + str(next_id))
-        
-    def toggleProfile():
+
+    def toggleProfile(self):
         profileId = input("\nQuale slice vuoi attivare?:")
-        global self.sliceActive 
         self.sliceActive = int(profileId)
         print("\nActivating profile n." + str(self.sliceActive))
         self.send(profileId)
-        
-        
+
+
     def start(self):
         while(self.acceptCommand()):
             sleep(0.5)
