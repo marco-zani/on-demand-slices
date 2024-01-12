@@ -1,10 +1,12 @@
 import json
+from time import sleep
 
 #Variabile globale per slice attiva, valore default
 sliceActive = 1
 
 def acceptCommand():
     choice = input("\nSelect function:\n1 - listNetElements\n2 - listSlicingProfiles\n3 - listActiveProfiles\n4 - createNewProfile\n5 - toggleProfile\n0 - exit\n")
+
     if choice == "0":
         return False
     elif choice == "1":
@@ -105,6 +107,7 @@ def createNewProfile():
 
     print("Aggiunta nuova slice con id -> " + str(next_id))
 
+
 def toggleProfile():
     profileId = input("\nQuale slice vuoi attivare?:")
     global sliceActive 
@@ -112,4 +115,4 @@ def toggleProfile():
     print("\nActivating profile n." + str(sliceActive))
 
 while(acceptCommand()):
-    a = 0
+    sleep(0.5)
