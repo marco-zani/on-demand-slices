@@ -81,7 +81,7 @@ def createNewProfile():
 def toggleProfile(profileId):
     print("Activating profile n." + str(profileId))
 
-def start(q):
+def start():
     while(acceptCommand()):
         a = 0
 
