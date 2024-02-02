@@ -59,7 +59,7 @@ def listItems(net):
         link = net.linksBetween(src,dst)
         if link != []:
             for el in link:
-                links.append(str(el).replace('<', '').replace('>','').replace('-', ' '))
+                links.append(str(el).replace('-', ' ').replace('< >',' '))
 
     f = open("links",'w')
     for link in links:
