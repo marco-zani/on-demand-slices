@@ -2,7 +2,7 @@
 
 from mininet.topo import Topo
 from mininet.net import Mininet
-from mininet.node import OVSKernelSwitch, RemoteController
+from mininet.node import OVSKernelSwitch, RemoteController, Node
 from mininet.cli import CLI
 from mininet.link import TCLink
 
@@ -66,6 +66,19 @@ def listItems(net):
         f.write(link+'\n')
     f.close()
 
+def listIp(net):
+    devs = net.items()
+    conv = list()
+    for name, _ in devs:
+        if name[0] != "c" and name[0] != "s":
+            conv.append(name +"-"+ str(Node.MAC(net.get(name))))
+    
+    f = open("macs",'w')
+    for el in conv :
+        f.write(el+'\n')
+    f.close()
+
+
 if __name__ == "__main__":
     topo = Topology()
     net = Mininet(
@@ -80,5 +93,6 @@ if __name__ == "__main__":
     net.build()
     net.start()
     listItems(net)
+    listIp(net)
     CLI(net)
     net.stop()

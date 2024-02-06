@@ -4,6 +4,7 @@ from time import sleep
 from os.path import exists
 from os import remove as deleteFile
 import floydWarshall as fw
+from topology import TopologyStruct
 import socket, pickle
 from commonStaticVariables import UDP_IP, UDP_PORT
 
@@ -20,69 +21,6 @@ def uploadData(file_path):
 def saveData(data, file_path):
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=2)
-
-class ConfEntry:
-    def __init__(self):
-        self.id = None
-        self.ports = []
-
-class TopologyStruct:
-    def __init__(self) -> None:
-        self.devices = {}
-        self.activeConfiguration = None
-        pass
-
-    def addDevice(self, name):
-        if name not in self.devices.keys():
-            self.devices.update({name:[]}) 
-
-    def addLink(self, srcName, srcPort, dstName, dstPort):
-        self.addDevice(srcName)
-        self.addDevice(dstName)
-
-        if (srcPort, dstName) not in self.devices[srcName]:
-            self.devices[srcName].append((srcPort,dstName))
-        if (dstPort, srcName) not in self.devices[dstName]:
-            self.devices[dstName].append((dstPort,srcName))    
-
-    def getLinks(self):
-        out = []
-        for dev in self.devices:
-            for port, endDev in self.devices[dev]:
-                out.append(dev + " -eth" + port + "-> " + endDev)
-        return out
-    
-    def getPort(self, src, dst):
-        for port, device in self.devices[src]:
-            if device == dst:
-                return port
-        return None
-            
-    def convertProfileInConfiguration(self, prf):
-        n = len(prf)
-        adjMatrix = fw.initMatrix(n,prf,self.devices)
-        nextHopMatrix = fw.compute_next_hop(adjMatrix)
-        shrinkedTable = fw.shrinkTable(nextHopMatrix, prf)
-        forwardingTable =  fw.convertToDict(shrinkedTable, prf)
-        portsTable = self.convertPorts(forwardingTable)
-        conf = fw.extractSwitches(portsTable)
-        
-        for el in conf:
-            print(el+":"+str(conf[el]))
-        return conf
-    
-    def convertPorts(self, table):
-        out = {}
-        for key in table:
-            for nextHop, reachableHosts in table[key]:
-                port = self.getPort(key,nextHop)
-                if key not in out:
-                    out.update({key:[(port, reachableHosts)]})
-                else:
-                    out[key].append((port,reachableHosts))
-        return out
-
-
     
 class Slicer:
     def __init__(self) -> None:
@@ -95,6 +33,7 @@ class Slicer:
     def acceptCommand(self):
         choice = input("\nSelect function:\n1 - listNetElements\n2 - listSlicingProfiles\n3 - listActiveProfiles\n4 - createNewProfile\n5 - toggleProfile\n0 - exit\n")
         if choice == "0":
+            self.sendUDP(b"off")
             self.sock.shutdown()
             return False
         elif choice == "1":
@@ -189,6 +128,9 @@ class Slicer:
 
         print("Aggiunta nuova slice con id -> " + str(next_id))
         
+    def sendUDP(self, data):
+        self.sock.sendto(data, (UDP_IP, UDP_PORT))
+
     def toggleProfile(self):
         profileId = input("\nQuale slice vuoi attivare?:")
         self.sliceActive = int(profileId)
@@ -204,7 +146,7 @@ class Slicer:
                 break
         self.topology.activeConfiguration = self.topology.convertProfileInConfiguration(prf)
         data = pickle.dumps(self.topology.activeConfiguration)
-        self.sock.sendto(data, (UDP_IP, UDP_PORT))
+        self.sendUDP(data)
 
         
     def importTopology(self):
@@ -217,15 +159,31 @@ class Slicer:
             t = el.split(' ')
             self.topology.addLink(t[0],t[1].replace('eth',''),t[2],t[3].replace('eth',''))
         f.close()
-        deleteFile(fileName)
+        #deleteFile(fileName)
 
-        for el in self.topology.getLinks():
-            print(el)
+    def sendMACs(self):
+        macs = {}
+        fileName = 'macs'
+        while not exists(fileName):
+            sleep(3)
+        f = open(fileName)
+        for el in f:
+            el = el.replace('\n','')
+            t = el.split('-')
+            macs.update({t[1]:t[0]})
+        f.close()
+        #deleteFile(fileName)
+
+        msg = pickle.dumps(macs)
+        self.sendUDP(msg)
 
 
     def start(self):
         self.importTopology()
+        self.sendMACs()
         while(self.acceptCommand()):
             sleep(0.5)
 
 
+s = Slicer()
+s.start()
