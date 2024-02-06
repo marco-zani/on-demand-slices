@@ -1,3 +1,4 @@
 *.prvt
 __pycache__/
 links
+macs
