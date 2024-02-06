@@ -15,6 +15,10 @@ from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER, set_ev_cl
 from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import packet, ethernet
 from ryu.lib.dpid import dpid_to_str
+from commonStaticVariables import UDP_IP,UDP_PORT, BUFFER_SIZE
+import multiprocessing as mp 
+from multiprocessing import shared_memory as sm
+import socket, pickle
 
 
 class Controller(RyuApp):
@@ -22,7 +26,28 @@ class Controller(RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
-        super(Controller, self).__init__(*args, **kwargs)
+        if __name__ == "__main__":
+            super(Controller, self).__init__(*args, **kwargs)
+            self.manager = mp.Manager()
+            self.conf = self.manager.dict()
+            p = mp.Process(target=self.udpClient, args=())
+            p.start()
+
+        
+
+    def udpClient(self):
+        sock = socket.socket(socket.AF_INET, # Internet
+                        socket.SOCK_DGRAM) # UDP
+        sock.bind((UDP_IP, UDP_PORT))
+
+        while True:
+            data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+            print("received message: " + str(data))
+            if data == b"off":
+                self.manager.shutdown()
+                break
+            self.conf = pickle.loads(data)
+
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def features_handler(self, ev):

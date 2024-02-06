@@ -4,6 +4,8 @@ from time import sleep
 from os.path import exists
 from os import remove as deleteFile
 import floydWarshall as fw
+import socket, pickle
+from commonStaticVariables import UDP_IP, UDP_PORT
 
 def loadProfiles():
         with open('profiles.json', 'r') as file:
@@ -83,8 +85,8 @@ class TopologyStruct:
 
     
 class Slicer:
-    def __init__(self, send) -> None:
-        self.send = send
+    def __init__(self) -> None:
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         #Variabile globale per slice attiva, valore default
         self.sliceActive = 1
         self.topology = TopologyStruct()
@@ -93,6 +95,7 @@ class Slicer:
     def acceptCommand(self):
         choice = input("\nSelect function:\n1 - listNetElements\n2 - listSlicingProfiles\n3 - listActiveProfiles\n4 - createNewProfile\n5 - toggleProfile\n0 - exit\n")
         if choice == "0":
+            self.sock.shutdown()
             return False
         elif choice == "1":
             self.listNetElements()
@@ -200,7 +203,8 @@ class Slicer:
             if prf != []:
                 break
         self.topology.activeConfiguration = self.topology.convertProfileInConfiguration(prf)
-        self.send(self.topology.activeConfiguration)
+        data = pickle.dumps(self.topology.activeConfiguration)
+        self.sock.sendto(data, (UDP_IP, UDP_PORT))
 
         
     def importTopology(self):

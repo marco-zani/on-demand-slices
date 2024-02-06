@@ -1,5 +1,6 @@
 from slicer import Slicer
 import multiprocessing as mp
+from controller2 import Controller
 
 class Wrapper:
     def __init__(self, q) -> None:
@@ -9,19 +10,7 @@ class Wrapper:
     def send(self, msg):
         self.queue.put(msg)
 
-    def receive(self):
-        out = None
-        while(not self.queue.empty()):
-            out = self.queue.get()
-        return out
-
-    def receiver(self):
-        o = False
-        while(not o):
-            msg = self.receive()
-            if msg != None:
-                print("received: " + msg)
-                o = True
+    
 
 
 
@@ -31,7 +20,7 @@ if __name__ == '__main__':
     w = Wrapper(q)
     s = Slicer(w.send)
 
-    p = mp.Process(target=w.receiver, args=())
+    p = mp.Process(target=w., args=())
 
     p.start()
 
