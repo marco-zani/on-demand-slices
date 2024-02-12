@@ -1,3 +1,5 @@
+import floydWarshall as fw
+
 class TopologyStruct:
     def __init__(self) -> None:
         self.devices = {}

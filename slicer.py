@@ -3,7 +3,6 @@ import json
 from time import sleep
 from os.path import exists
 from os import remove as deleteFile
-import floydWarshall as fw
 from topology import TopologyStruct
 import socket, pickle
 from commonStaticVariables import UDP_IP, UDP_PORT
@@ -34,7 +33,7 @@ class Slicer:
         choice = input("\nSelect function:\n1 - listNetElements\n2 - listSlicingProfiles\n3 - listActiveProfiles\n4 - createNewProfile\n5 - toggleProfile\n0 - exit\n")
         if choice == "0":
             self.sendUDP(b"off")
-            self.sock.shutdown()
+            self.sock.close()
             return False
         elif choice == "1":
             self.listNetElements()

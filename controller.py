@@ -16,8 +16,7 @@ from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import packet, ethernet
 from ryu.lib.dpid import dpid_to_str
 from commonStaticVariables import UDP_IP,UDP_PORT, BUFFER_SIZE
-import multiprocessing as mp 
-from multiprocessing import shared_memory as sm
+import threading
 import socket, pickle
 
 class Controller(RyuApp):
@@ -25,13 +24,14 @@ class Controller(RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
-        if __name__ == "__main__":
-            super(Controller, self).__init__(*args, **kwargs)
-            self.manager = mp.Manager()
-            self.conf = self.manager.dict()
-            self.macs = self.manager.dict()
-            p = mp.Process(target=self.udpClient, args=())
-            p.start()
+        super(Controller, self).__init__(*args, **kwargs)
+        self.conf={}
+        self.macs = {}
+        self.pendigMod = []
+        self.dpids = []
+        self.modified = False
+        p = threading.Thread(target=self.udpClient, args=())
+        p.start()
 
     def udpClient(self):
         sock = socket.socket(socket.AF_INET, # Internet
@@ -44,11 +44,17 @@ class Controller(RyuApp):
             if firstMessage:
                 firstMessage = False
                 self.macs = pickle.loads(data)
-            print("received message: " + str(data))
+                for el in self.macs:
+                    print(el)
+            else:
+                self.conf = pickle.loads(data)
+                self.modified = True
+                print("new configuration received!")
+
             if data == b"off":
-                self.manager.shutdown()
                 break
-            self.conf = pickle.loads(data)
+            
+            
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def features_handler(self, ev):
@@ -67,7 +73,7 @@ class Controller(RyuApp):
         self.__add_flow(datapath, 0, match, actions)
 
 
-        @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
+    @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def packet_in_handler(self, ev):
         '''
         Packet In Event Handler
@@ -81,27 +87,54 @@ class Controller(RyuApp):
         ofproto = msg.datapath.ofproto
         parser = msg.datapath.ofproto_parser
         dpid = datapath.id
+        if dpid not in self.dpids:
+            self.dpids.append(dpid)
+            print("Registered switches:", self.dpids)
         pkt = packet.Packet(msg.data)
         in_port = msg.match['in_port']
+
+        if self.modified:
+            self.pendigMod = self.dpids
+            self.modified = False
 
         eth_pkt = pkt.get_protocol(ethernet.ethernet)
 
         src = eth_pkt.src
         dst = eth_pkt.dst
-        print("Source: " + str(src) + " | Destinazione: " + str(dst) + " | In_port: " + str(in_port) + " | Dpid: " + str(dpid))
-        out_port = self.getPort(in_port,src,dst)
-        print(out_port)
 
-        match=parser.OFPMatch(in_port=in_port,eth_dst=dst,eth_src=src)
+        
+        switchName = "s" + str(dpid)
+        srcName = src
+        dstName = dst
+        if src in self.macs:
+            srcName = self.macs[src]
+        if dst in self.macs:
+            dstName = self.macs[src]
+        
+        print("Source: " + str(srcName) + " | Destinazione: " + str(dstName) + " | In_port: " + str(in_port) + " | Dpid: " + str(switchName))
 
-        data = msg.data if msg.buffer_id == ofproto.OFP_NO_BUFFER else None
-        #actions = [datapath.ofproto_parser.OFPActionOutput(ofproto.OFPP_FLOOD)]
-        actions = [parser.OFPActionOutput(out_port)]
-        self.__add_flow(datapath,1,match,actions)
+        out_port = self.getPort(in_port,switchName,dst)
+        if out_port != None:
+            if len(self.pendigMod) != 0 and dpid not in self.pendigMod:
+                print("before:", self.pendigMod)
+                if dpid in self.pendigMod:
+                    self.pendigMod.remove(dpid)
+                    print("after:", self.pendigMod)
+                    match = parser.OFPMatch()
+                    actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER, ofproto.OFPCML_NO_BUFFER)]
+                    self.__add_flow(datapath,1,match,actions)
+            
+            match=parser.OFPMatch(in_port=in_port,eth_dst=dst,eth_src=src)
 
-        out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id, in_port=in_port, actions=actions, data=data)
+            data = msg.data if msg.buffer_id == ofproto.OFP_NO_BUFFER else None
+            #actions = [datapath.ofproto_parser.OFPActionOutput(ofproto.OFPP_FLOOD)]
 
-        datapath.send_msg(out)
+            actions = [parser.OFPActionOutput(out_port)]
+            self.__add_flow(datapath,1,match,actions)
+
+            out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id, in_port=in_port, actions=actions, data=data)
+
+            datapath.send_msg(out)
 
     def __add_flow(self, datapath, priority, match, actions):
         '''
@@ -120,15 +153,22 @@ class Controller(RyuApp):
 
 
 
-    def getPort(self, in_port, dpid, dst):
-        switchName = "s" + str(dpid)
-        dstName = self.macs[dst]
-
-        for port, connDevs in self.conf[switchName]:
-            if dstName in connDevs:
-                return port
+    def getPort(self, in_port, switchName, dst):
+        out = None
+        
+        if dst in self.macs:
+            dstName = self.macs[dst]
+        else:
+            return out
+        
+        if switchName in self.conf:
+            for port, connDevs in self.conf[switchName]:
+                if dstName in connDevs:
+                    out = int(port)
+                    break
             
-        return None
+        print("Get port output: " + str(out) )
+        return out
 
 
 
