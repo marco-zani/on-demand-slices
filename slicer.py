@@ -20,6 +20,12 @@ def uploadData(file_path):
 def saveData(data, file_path):
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=2)
+
+class Profile:
+    def __init__(self,id, name, devices):
+        self.id = id
+        self.name = name
+        self.devices = devices
     
 class Slicer:
     def __init__(self) -> None:
@@ -27,7 +33,21 @@ class Slicer:
         #Variabile globale per slice attiva, valore default
         self.sliceActive = 1
         self.topology = TopologyStruct()
+        self.profiles = self.getProfiles()
         pass
+
+    def getProfiles(self):
+        out = []
+
+        data = loadProfiles()
+        #Ciclo while che stampa ogni elemento del file
+
+
+        for el in data:
+            t = Profile(el["id"],el["name"],el["devices"])
+            out.append(t)
+        print("Done")
+        return out
 
     def acceptCommand(self):
         choice = input("\nSelect function:\n1 - listNetElements\n2 - listSlicingProfiles\n3 - listActiveProfiles\n4 - createNewProfile\n5 - toggleProfile\n0 - exit\n")
@@ -128,7 +148,7 @@ class Slicer:
         print("Aggiunta nuova slice con id -> " + str(next_id))
         
     def sendUDP(self, data):
-        self.sock.sendto(data, (UDP_IP, UDP_PORT))
+        self.sock.sendto(data, ("0.0.0.0", UDP_PORT))
 
     def toggleProfile(self):
         profileId = input("\nQuale slice vuoi attivare?:")
@@ -182,7 +202,3 @@ class Slicer:
         self.sendMACs()
         while(self.acceptCommand()):
             sleep(0.5)
-
-
-s = Slicer()
-s.start()

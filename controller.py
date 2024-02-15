@@ -36,7 +36,7 @@ class Controller(RyuApp):
     def udpClient(self):
         sock = socket.socket(socket.AF_INET, # Internet
                         socket.SOCK_DGRAM) # UDP
-        sock.bind((UDP_IP, UDP_PORT))
+        sock.bind(("0.0.0.0", UDP_PORT))
         firstMessage = True
 
         while True:
@@ -50,6 +50,8 @@ class Controller(RyuApp):
                 self.conf = pickle.loads(data)
                 self.modified = True
                 print("new configuration received!")
+            
+
 
             if data == b"off":
                 break
