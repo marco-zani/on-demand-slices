@@ -15,7 +15,7 @@ from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER, set_ev_cl
 from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import packet, ethernet
 from ryu.lib.dpid import dpid_to_str
-from commonStaticVariables import UDP_IP,UDP_PORT, BUFFER_SIZE
+from common import UDP_IP,UDP_PORT, BUFFER_SIZE
 import threading
 import socket, pickle
 
