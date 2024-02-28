@@ -3,10 +3,9 @@ import json
 from time import sleep
 from os.path import exists
 from os import remove as deleteFile
-import floydWarshall as fw
 from topology import TopologyStruct
 import socket, pickle
-from commonStaticVariables import UDP_IP, UDP_PORT
+from common import UDP_IP, UDP_PORT
 
 def loadProfiles():
         with open('profiles.json', 'r') as file:
@@ -21,6 +20,12 @@ def uploadData(file_path):
 def saveData(data, file_path):
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=2)
+
+class Profile:
+    def __init__(self,id, name, devices):
+        self.id = id
+        self.name = name
+        self.devices = devices
     
 class Slicer:
     def __init__(self) -> None:
@@ -28,123 +33,27 @@ class Slicer:
         #Variabile globale per slice attiva, valore default
         self.sliceActive = 1
         self.topology = TopologyStruct()
+        self.profiles = self.getProfiles()
         pass
 
-    def acceptCommand(self):
-        choice = input("\nSelect function:\n1 - listNetElements\n2 - listSlicingProfiles\n3 - listActiveProfiles\n4 - createNewProfile\n5 - toggleProfile\n0 - exit\n")
-        if choice == "0":
-            self.sendUDP(b"off")
-            self.sock.shutdown()
-            return False
-        elif choice == "1":
-            self.listNetElements()
-            return True
-        elif choice == "2":
-            self.listSlicingProfiles()
-            return True
-        elif choice == "3":
-            self.listActiveProfiles()
-            return True
-        elif choice == "4":
-            self.createNewProfile()
-            return True
-        elif choice == "5":
-            self.toggleProfile()           
-            return True
-
-    def listNetElements(self):
-        print("\nListing default network")
-        
-        links = self.topology.getLinks()
-        linksStr = []
-        hostStr = []
-        for src,dst in links:
-            linksStr.append(src.name+"-"+src.port+" -> "+dst.port+"-"+dst.name)
-            for host in [src,dst]:
-                if host.name not in hostStr:
-                    hostStr.append(host.name)
-        print("Hosts:")
-        for el in hostStr:
-            print(el)
-        print("\nLinks:")
-        for el in linksStr:
-            print(el)
-
-    def listSlicingProfiles(self):
-        print("\nListing all profiles")
+    def getProfiles(self):
+        out = []
 
         data = loadProfiles()
         #Ciclo while che stampa ogni elemento del file
+
+
         for el in data:
-            print(el)
-        
-
-    def listActiveProfiles(self):
-        print("\nListing active profiles")
-        
-        data = loadProfiles()
-
-        #Stampa dati relativi alla variabile globale selezionata
-        print(json.dumps(data[self.sliceActive-1],indent=4))
-
-
-    def createNewProfile():
-        # Carica i dati dal file
-        file_path = 'profiles.json'
-        dati_originali = uploadData(file_path)
-        
-        # Get id attuale massimo
-        max_id = max(entry[next(iter(entry))]['id'] for entry in dati_originali)
-        next_id = max_id + 1
-
-        # Aggiungi una nuova slice
-        nuova_slice_name = input("Inserisci il nome della nuova slice: ")
-
-        # Crea la nuova slice
-        nuova_slice = {
-            nuova_slice_name: {
-                "id": next_id,
-                "links": []
-            }
-        }
-
-        # Inserimento links
-        while True:
-            source_host = input("Inserisci l'host sorgente: ")
-            target_host = input("Inserisci l'host di destinazione: ")
-
-            nuova_slice[nuova_slice_name]['links'].append({
-                "source": source_host,
-                "target": target_host
-            })
-            risposta = input("Vuoi inserire un altro collegamento? (s per si, n per uscire): ")
-            if risposta.lower() == 'n':
-                break
-
-        dati_originali.append(nuova_slice)
-
-        # Salva i dati aggiornati nel file
-        saveData(dati_originali, file_path)
-
-        print("Aggiunta nuova slice con id -> " + str(next_id))
+            t = Profile(el["id"],el["name"],el["devices"])
+            out.append(t)
+        return out
         
     def sendUDP(self, data):
-        self.sock.sendto(data, (UDP_IP, UDP_PORT))
+        self.sock.sendto(data, ("0.0.0.0", UDP_PORT))
 
-    def toggleProfile(self):
-        profileId = input("\nQuale slice vuoi attivare?:")
-        self.sliceActive = int(profileId)
-        print("\nActivating profile n." + str(self.sliceActive))
-        temp = loadProfiles()
-        prf = []
-        for el in temp:
-            for subEl in el.values():
-                if subEl["id"] == self.sliceActive:
-                    prf = subEl["devices"]
-                    break
-            if prf != []:
-                break
-        self.topology.activeConfiguration = self.topology.convertProfileInConfiguration(prf)
+    def toggleProfile(self, id):
+        self.sliceActive = int(id)
+        self.topology.activeConfiguration = self.topology.convertProfileInConfiguration(self.profiles[id])
         data = pickle.dumps(self.topology.activeConfiguration)
         self.sendUDP(data)
 
@@ -183,7 +92,3 @@ class Slicer:
         self.sendMACs()
         while(self.acceptCommand()):
             sleep(0.5)
-
-
-s = Slicer()
-s.start()
