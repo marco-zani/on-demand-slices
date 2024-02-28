@@ -1,4 +1,4 @@
-def initMatrix(n,prf, devices):
+def     initMatrix(n,prf, devices):
     out = [[float('inf')] * n for _ in range(n)]
     for el in prf:
         for _, endDev in devices[el]:

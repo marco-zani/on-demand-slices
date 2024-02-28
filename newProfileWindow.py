@@ -5,9 +5,7 @@ from common import set_margin
 from gi.repository import GObject as gobject
 
 gi.require_version("Gtk", "4.0")
-gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw
-from slicer import Profile
+from gi.repository import Gtk
 
 class NewProfileWindow(Gtk.ApplicationWindow):
     def __init__(self, devices, id, *args, **kwargs):

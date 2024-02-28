@@ -1,5 +1,12 @@
 [
   {
+    "id": 0,
+    "name": "Default",
+    "devices": [
+      
+    ]
+  },
+  {
     "id": 1,
     "name": "Slice1",
     "devices": [

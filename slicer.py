@@ -47,41 +47,13 @@ class Slicer:
             t = Profile(el["id"],el["name"],el["devices"])
             out.append(t)
         return out
-
-    def listSlicingProfiles(self):
-        print("\nListing all profiles")
-
-        data = loadProfiles()
-        #Ciclo while che stampa ogni elemento del file
-        for el in data:
-            print(el)
-        
-
-    def listActiveProfiles(self):
-        print("\nListing active profiles")
-        
-        data = loadProfiles()
-
-        #Stampa dati relativi alla variabile globale selezionata
-        print(json.dumps(data[self.sliceActive-1],indent=4))
         
     def sendUDP(self, data):
         self.sock.sendto(data, ("0.0.0.0", UDP_PORT))
 
-    def toggleProfile(self):
-        profileId = input("\nQuale slice vuoi attivare?:")
-        self.sliceActive = int(profileId)
-        print("\nActivating profile n." + str(self.sliceActive))
-        temp = loadProfiles()
-        prf = []
-        for el in temp:
-            for subEl in el.values():
-                if subEl["id"] == self.sliceActive:
-                    prf = subEl["devices"]
-                    break
-            if prf != []:
-                break
-        self.topology.activeConfiguration = self.topology.convertProfileInConfiguration(prf)
+    def toggleProfile(self, id):
+        self.sliceActive = int(id)
+        self.topology.activeConfiguration = self.topology.convertProfileInConfiguration(self.profiles[id])
         data = pickle.dumps(self.topology.activeConfiguration)
         self.sendUDP(data)
 

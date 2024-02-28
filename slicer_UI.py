@@ -5,10 +5,12 @@ from gi.repository import GObject
 from slicer import Slicer, Profile
 from common import set_margin
 from newProfileWindow import NewProfileWindow
+from SimpleDropDown import SimpleDropDown
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw
+gi.require_version("Gio", "2.0")
+from gi.repository import Gtk, Adw, Gio
 from gi.repository import GObject as gobject
 
 
@@ -22,27 +24,60 @@ def formatProfiles(profiles):
     return out
 
 
+def splitArray(arr):
+    splitIndex = len(arr) // 2
+    while splitIndex < len(arr) and (
+        arr[splitIndex] != "\n" or arr[splitIndex + 1] != "\n"
+    ):
+        splitIndex += 1
+
+    outLeft = arr[:splitIndex]
+    outRight = arr[splitIndex + 2 :]
+
+    return outLeft, outRight
+
+
 def formatDevices(devices):
     out = ""
     for dev in devices:
         conn = devices[dev]
         out = out + "<b>@" + dev + "</b>\n"
 
+        if type(conn) != list:
+            conn = [conn]
+
         lastItem = conn[-1]
+
         for port, connDev in conn:
             if (port, connDev) == lastItem:
                 out = out + "  └─ Eth" + port + " ── " + connDev + "\n\n"
             else:
                 out = out + "  ├─ Eth" + port + " ── " + connDev + "\n"
 
-    splitIndex = len(out) // 2
-    while out[splitIndex] != "\n" or out[splitIndex + 1] != "\n":
-        splitIndex += 1
+    return out
 
-    outLeft = out[:splitIndex]
-    outRight = out[splitIndex:]
 
-    return outLeft, outRight
+def formatActiveSlice(profile, devices, switchConf):
+    out = ""
+    if profile == None or switchConf == None:
+        out = out + "No slice has been selected"
+    else:
+        for el in profile.devices:
+            tempDev = {el: []}
+            if el in switchConf:
+                usedPorts = []
+                for port, _ in switchConf[el]:
+                    usedPorts.append(port)
+
+                for port, conn in devices[el]:
+                    if port in usedPorts:
+                        tempDev[el].append((port, conn))
+                out = out + formatDevices(tempDev)
+
+            else:
+                tempDev[el] = devices[el]
+                out = out + formatDevices(tempDev)
+    return out
 
 
 class SlicerWindow(Gtk.ApplicationWindow):
@@ -68,11 +103,17 @@ class SlicerWindow(Gtk.ApplicationWindow):
         viewStack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
         viewStack.set_transition_duration(500)
 
-        viewStack.add_titled(self.getNetworkView(), "netView", "network view")
         viewStack.add_titled(
-            self.getActiveSlicesView(), "slicesView", "active slices view"
+            self.buildWrapper(self.getNetworkView()), "netView", "network view"
         )
-        viewStack.add_titled(self.getProfilesView(), "profView", "profiles view")
+        viewStack.add_titled(
+            self.buildWrapper(self.getActiveSlicesView()),
+            "slicesView",
+            "active slices view",
+        )
+        viewStack.add_titled(
+            self.buildWrapper(self.getProfilesView()), "profView", "profiles view"
+        )
 
         viewSwitcher.set_stack(viewStack)
 
@@ -80,36 +121,7 @@ class SlicerWindow(Gtk.ApplicationWindow):
         body.append(viewSwitcher)
         body.append(viewStack)
 
-    def getNetworkView(self):
-        out = Gtk.ScrolledWindow()
-        container = Gtk.Box()
-        set_margin(container, 25)
-        container.set_hexpand(True)
-        container.set_vexpand(True)
-
-        lSep = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
-        rSep = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
-
-        leftText, rightText = formatDevices(self.slicer.topology.devices)
-
-        networkTextLeft = Gtk.Label()
-        networkTextLeft.set_markup(leftText)
-        networkTextLeft.set_hexpand(True)
-
-        networkTextRight = Gtk.Label()
-        networkTextRight.set_markup(rightText)
-        networkTextRight.set_hexpand(True)
-
-        container.append(lSep)
-        container.append(networkTextLeft)
-        container.append(networkTextRight)
-        container.append(rSep)
-
-        out.set_child(container)
-
-        return container
-
-    def getActiveSlicesView(self):
+    def buildWrapper(self, body):
         out = Gtk.Box()
         set_margin(out, 25)
         out.set_hexpand(True)
@@ -118,26 +130,105 @@ class SlicerWindow(Gtk.ApplicationWindow):
         lSep = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
         rSep = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
 
-        activeSlicesText = Gtk.Label(label="active slices view")
-        activeSlicesText.set_hexpand(True)
-
         out.append(lSep)
-        out.append(activeSlicesText)
+        out.append(body)
         out.append(rSep)
 
         return out
 
-    def getProfilesView(self):
-        out = Gtk.Box()
-        set_margin(out, 25)
+    def getNetworkView(self):
+        body = Gtk.Box()
 
+        leftText, rightText = splitArray(formatDevices(self.slicer.topology.devices))
+
+        networkTextLeft = Gtk.Label(valign=Gtk.Align.START, hexpand=True)
+        networkTextLeft.set_markup(leftText)
+
+        networkTextRight = Gtk.Label(valign=Gtk.Align.START, hexpand=True)
+        networkTextRight.set_markup(rightText)
+
+        body.append(networkTextLeft)
+        body.append(networkTextRight)
+
+        return body
+
+    def getActiveSlicesView(self):
+        body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
+        set_margin(body, 20)
+
+        activeSliceLabel = Gtk.Label(
+            hexpand=True, halign=Gtk.Align.START, margin_start=5
+        )
+        activeSliceLabel.set_markup("<b>Active slice:</b>")
+
+        profilesList = []
+        for profile in self.slicer.profiles:
+            profilesList.append(profile.name)
+
+        sliceSelector = SimpleDropDown(profilesList)
+        sliceSelector.set_hexpand(True)
+        sliceSelector.set_margin_top(15)
+        sliceSelector.set_margin_bottom(15)
+
+        descriptorLbl = Gtk.Label(
+            hexpand=True, halign=Gtk.Align.START, valign=Gtk.Align.START
+        )
+        descriptorLbl.set_markup("<b>Descriptor:</b>")
+
+        descriptorBox = Gtk.Box(hexpand=True, orientation=Gtk.Orientation.HORIZONTAL)
+        set_margin(descriptorBox, 5)
+
+        activeSliceDescriptorLeft = Gtk.Label(
+            hexpand=True, halign=Gtk.Align.START, valign=Gtk.Align.START
+        )
+        activeSliceDescriptorRight = Gtk.Label(
+            hexpand=True, halign=Gtk.Align.START, valign=Gtk.Align.START
+        )
+
+        leftText, rightText = splitArray(
+            formatActiveSlice(
+                self.slicer.profiles[self.slicer.sliceActive],
+                self.slicer.topology.devices,
+                self.slicer.topology.activeConfiguration,
+            )
+        )
+        activeSliceDescriptorLeft.set_markup(leftText)
+        activeSliceDescriptorRight.set_markup(rightText)
+
+        sliceSelector.connect(
+            "dropDownElementSelected",
+            self.updateActiveSlice,
+            activeSliceDescriptorLeft,
+            activeSliceDescriptorRight,
+        )
+
+        body.append(activeSliceLabel)
+        body.append(sliceSelector)
+        body.append(descriptorLbl)
+        descriptorBox.append(activeSliceDescriptorLeft)
+        descriptorBox.append(activeSliceDescriptorRight)
+        body.append(descriptorBox)
+
+        return body
+
+    def updateActiveSlice(self, dropdown, leftLabel, rightLabel):
+        self.slicer.toggleProfile(dropdown.get_selected())
+
+        leftText, rightText = splitArray(
+            formatActiveSlice(
+                self.slicer.profiles[self.slicer.sliceActive],
+                self.slicer.topology.devices,
+                self.slicer.topology.activeConfiguration,
+            )
+        )
+        leftLabel.set_markup(leftText)
+        rightLabel.set_markup(rightText)
+
+    def getProfilesView(self):
         body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
         body.set_hexpand(True)
         body.set_vexpand(True)
-
-        lSep = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
-        rSep = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
 
         profilesText = Gtk.Label()
         profilesText.set_markup(formatProfiles(self.slicer.profiles))
@@ -155,11 +246,7 @@ class SlicerWindow(Gtk.ApplicationWindow):
         body.append(profilesText)
         body.append(addProfileBtn)
 
-        out.append(lSep)
-        out.append(body)
-        out.append(rSep)
-
-        return out
+        return body
 
     def updateProfiles(self, window, label):
         label.set_markup(formatProfiles(self.slicer.profiles))
