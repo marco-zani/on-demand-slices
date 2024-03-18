@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
-
 import gi
 
 gi.require_version('Adw', '1')
 gi.require_version('Gtk', '4.0')
 
 from gi.repository import Gio, GObject, Gtk
+from common import get_children
 
 class Entry(GObject.Object):
     __gtype_name__ = 'Widget'
@@ -19,7 +18,7 @@ class Entry(GObject.Object):
         return self._name
 
 class SimpleDropDown(Gtk.DropDown):
-    def __init__(self, list):
+    def __init__(self, list, selected):
 
         ## Create model
         self.model = Gio.ListStore(item_type=Entry)
@@ -36,6 +35,7 @@ class SimpleDropDown(Gtk.DropDown):
         super().__init__(model=self.model, factory=factory)
     
         self.connect("notify::selected-item", self._on_selected_widget)
+        self.set_selected(selected)
     
     def _on_factory_widget_setup(self, factory, list_item):
         box = Gtk.Box(spacing=6, orientation=Gtk.Orientation.HORIZONTAL)
@@ -51,6 +51,7 @@ class SimpleDropDown(Gtk.DropDown):
 
     def _on_selected_widget(self, dropdown, data):
         self.emit("dropDownElementSelected")
+
 
 GObject.type_register(SimpleDropDown)
 GObject.signal_new("dropDownElementSelected", SimpleDropDown, GObject.SignalFlags.RUN_FIRST,

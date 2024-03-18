@@ -1,52 +1,92 @@
 [
   {
     "id": 0,
-    "name": "Default",
-    "devices": [
-      
-    ]
+    "name": "None",
+    "slices": []
   },
   {
     "id": 1,
-    "name": "Slice1",
-    "devices": [
-      "h1",
-      "s1",
-      "h2",
-      "s2",
-      "h3",
-      "h4"
+    "name": "simpleSlice",
+    "slices": [
+      [
+        "h1",
+        "s1",
+        "h2",
+        "s2",
+        "h3",
+        "h4"
+      ]
     ]
   },
   {
     "id": 2,
-    "name": "Slice2",
-    "devices": [
-      "h1",
-      "s1",
-      "h2",
-      "h3",
-      "s2",
-      "h4",
-      "s3",
-      "h5",
-      "h6"
+    "name": "PopulatedSlice",
+    "slices": [
+      [
+        "h1",
+        "s1",
+        "h2",
+        "h3",
+        "s2",
+        "h4",
+        "s3",
+        "h5",
+        "h6"
+      ]
     ]
   },
   {
     "id": 3,
-    "name": "Slice3",
-    "devices": [
-      "h1",
-      "s1",
-      "h3",
-      "s2",
-      "s3",
-      "h5",
-      "s4",
-      "h7",
-      "s5",
-      "h9"
+    "name": "doubleSlice",
+    "slices": [
+      [
+        "h1",
+        "s1",
+        "s3",
+        "h5"
+      ],
+      [
+        "h3",
+        "s2",
+        "s4",
+        "h7"
+      ]
+    ]
+  },
+  {
+    "id": 3,
+    "name": "sharedSwitch",
+    "slices": [
+      [
+        "h1",
+        "s1",
+        "s3",
+        "h6"
+      ],
+      [
+        "h2",
+        "s1",
+        "s2",
+        "h3"
+      ]
+    ]
+  },
+  {
+    "id": 3,
+    "name": "sharedLink",
+    "slices": [
+      [
+        "h1",
+        "s1",
+        "s3",
+        "h6"
+      ],
+      [
+        "h2",
+        "s1",
+        "s3",
+        "h5"
+      ]
     ]
   }
 ]

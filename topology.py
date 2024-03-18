@@ -33,16 +33,20 @@ class TopologyStruct:
         return None
             
     def convertProfileInConfiguration(self, prf):
-        n = len(prf.devices)
-        adjMatrix = fw.initMatrix(n,prf.devices,self.devices)
-        nextHopMatrix = fw.compute_next_hop(adjMatrix)
-        shrinkedTable = fw.shrinkTable(nextHopMatrix, prf.devices)
-        forwardingTable =  fw.convertToDict(shrinkedTable, prf.devices)
-        portsTable = self.convertPorts(forwardingTable)
-        conf = fw.extractSwitches(portsTable)
-        
-        for el in conf:
-            print(el+":"+str(conf[el]))
+        conf = []
+        for slice in prf.slices:   
+            hosts = []
+            for dev in slice:
+                if dev[0] == 'h':
+                    hosts.append(dev)
+            n = len(slice)
+            adjMatrix = fw.initMatrix(n,slice,self.devices)
+            nextHopMatrix = fw.compute_next_hop(adjMatrix)
+            shrinkedTable = fw.shrinkTable(nextHopMatrix, slice)
+            forwardingTable =  fw.convertToDict(shrinkedTable, slice)
+            portsTable = self.convertPorts(forwardingTable)
+            conf.append((hosts, fw.extractSwitches(portsTable)))
+
         return conf
     
     def convertPorts(self, table):
