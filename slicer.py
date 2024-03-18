@@ -22,16 +22,16 @@ def saveData(data, file_path):
         json.dump(data, file, indent=2)
 
 class Profile:
-    def __init__(self,id, name, devices):
+    def __init__(self,id, name, slices):
         self.id = id
         self.name = name
-        self.devices = devices
+        self.slices = slices
     
 class Slicer:
     def __init__(self) -> None:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         #Variabile globale per slice attiva, valore default
-        self.sliceActive = 1
+        self.sliceActive = 0
         self.topology = TopologyStruct()
         self.profiles = self.getProfiles()
         pass
@@ -42,9 +42,8 @@ class Slicer:
         data = loadProfiles()
         #Ciclo while che stampa ogni elemento del file
 
-
         for el in data:
-            t = Profile(el["id"],el["name"],el["devices"])
+            t = Profile(el["id"],el["name"],el["slices"])
             out.append(t)
         return out
         

@@ -3,9 +3,10 @@ import gi
 
 from gi.repository import GObject
 from slicer import Slicer, Profile
-from common import set_margin
+from common import set_margin, get_children, splitArray, formatDevices
 from newProfileWindow import NewProfileWindow
 from SimpleDropDown import SimpleDropDown
+from activeSliceBox import ActiveSliceBox
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -17,66 +18,14 @@ from gi.repository import GObject as gobject
 def formatProfiles(profiles):
     out = ""
     for profile in profiles:
-        out = out + "<b>@" + str(profile.id) + " - " + profile.name + "</b>\n"
-        for dev in profile.devices:
-            out = out + " " + dev
+        out = out + "<b>@" + str(profile.id) + " - " + profile.name + "</b>"
+        sliceCount = 0
+        for slice in profile.slices:
+            sliceCount += 1
+            out = out + "\n " + "Slice #" + str(sliceCount) + ":" + "\n   "
+            for dev in slice:
+                out = out + " " + dev
         out = out + "\n\n"
-    return out
-
-
-def splitArray(arr):
-    splitIndex = len(arr) // 2
-    while splitIndex < len(arr) and (
-        arr[splitIndex] != "\n" or arr[splitIndex + 1] != "\n"
-    ):
-        splitIndex += 1
-
-    outLeft = arr[:splitIndex]
-    outRight = arr[splitIndex + 2 :]
-
-    return outLeft, outRight
-
-
-def formatDevices(devices):
-    out = ""
-    for dev in devices:
-        conn = devices[dev]
-        out = out + "<b>@" + dev + "</b>\n"
-
-        if type(conn) != list:
-            conn = [conn]
-
-        lastItem = conn[-1]
-
-        for port, connDev in conn:
-            if (port, connDev) == lastItem:
-                out = out + "  └─ Eth" + port + " ── " + connDev + "\n\n"
-            else:
-                out = out + "  ├─ Eth" + port + " ── " + connDev + "\n"
-
-    return out
-
-
-def formatActiveSlice(profile, devices, switchConf):
-    out = ""
-    if profile == None or switchConf == None:
-        out = out + "No slice has been selected"
-    else:
-        for el in profile.devices:
-            tempDev = {el: []}
-            if el in switchConf:
-                usedPorts = []
-                for port, _ in switchConf[el]:
-                    usedPorts.append(port)
-
-                for port, conn in devices[el]:
-                    if port in usedPorts:
-                        tempDev[el].append((port, conn))
-                out = out + formatDevices(tempDev)
-
-            else:
-                tempDev[el] = devices[el]
-                out = out + formatDevices(tempDev)
     return out
 
 
@@ -161,68 +110,71 @@ class SlicerWindow(Gtk.ApplicationWindow):
         )
         activeSliceLabel.set_markup("<b>Active slice:</b>")
 
-        profilesList = []
-        for profile in self.slicer.profiles:
-            profilesList.append(profile.name)
-
-        sliceSelector = SimpleDropDown(profilesList)
-        sliceSelector.set_hexpand(True)
-        sliceSelector.set_margin_top(15)
-        sliceSelector.set_margin_bottom(15)
-
         descriptorLbl = Gtk.Label(
             hexpand=True, halign=Gtk.Align.START, valign=Gtk.Align.START
         )
         descriptorLbl.set_markup("<b>Descriptor:</b>")
 
-        descriptorBox = Gtk.Box(hexpand=True, orientation=Gtk.Orientation.HORIZONTAL)
+        descriptorBox = Gtk.Box(hexpand=True, orientation=Gtk.Orientation.VERTICAL)
         set_margin(descriptorBox, 5)
 
-        activeSliceDescriptorLeft = Gtk.Label(
-            hexpand=True, halign=Gtk.Align.START, valign=Gtk.Align.START
-        )
-        activeSliceDescriptorRight = Gtk.Label(
-            hexpand=True, halign=Gtk.Align.START, valign=Gtk.Align.START
-        )
+        self.buildActiveConfUI(descriptorBox)
 
-        leftText, rightText = splitArray(
-            formatActiveSlice(
-                self.slicer.profiles[self.slicer.sliceActive],
-                self.slicer.topology.devices,
-                self.slicer.topology.activeConfiguration,
-            )
-        )
-        activeSliceDescriptorLeft.set_markup(leftText)
-        activeSliceDescriptorRight.set_markup(rightText)
-
-        sliceSelector.connect(
-            "dropDownElementSelected",
-            self.updateActiveSlice,
-            activeSliceDescriptorLeft,
-            activeSliceDescriptorRight,
-        )
+        dropDownBox = Gtk.Box(hexpand=True)
+        self.connect("updateProfiles", self.updateDropDown, dropDownBox, descriptorBox)
+        self.loadDropDown(dropDownBox, descriptorBox)
 
         body.append(activeSliceLabel)
-        body.append(sliceSelector)
+        body.append(dropDownBox)
         body.append(descriptorLbl)
-        descriptorBox.append(activeSliceDescriptorLeft)
-        descriptorBox.append(activeSliceDescriptorRight)
         body.append(descriptorBox)
 
         return body
 
-    def updateActiveSlice(self, dropdown, leftLabel, rightLabel):
+    def updateActiveSlice(self, dropdown, box):
         self.slicer.toggleProfile(dropdown.get_selected())
 
-        leftText, rightText = splitArray(
-            formatActiveSlice(
-                self.slicer.profiles[self.slicer.sliceActive],
-                self.slicer.topology.devices,
-                self.slicer.topology.activeConfiguration,
-            )
+        for child in get_children(box):
+            box.remove(child)
+
+        self.buildActiveConfUI(box)
+
+    def buildActiveConfUI(self, box):
+        sliceCount = 1
+        if self.slicer.topology.activeConfiguration == None:
+            label = Gtk.Label(hexpand=True)
+            label.set_markup("No slice has been selected")
+            box.append(label)
+        else:
+            for conf in self.slicer.topology.activeConfiguration:
+                t = ActiveSliceBox(sliceCount, conf, self.slicer.topology.devices)
+                box.append(t)
+                sliceCount += 1
+
+    def loadDropDown(self, container, outputBox):
+        profilesList = []
+        for profile in self.slicer.profiles:
+            profilesList.append(profile.name)
+
+        sliceSelector = SimpleDropDown(profilesList, self.slicer.sliceActive)
+        sliceSelector.set_hexpand(True)
+        sliceSelector.set_margin_top(15)
+        sliceSelector.set_margin_bottom(15)
+
+        sliceSelector.connect(
+            "dropDownElementSelected",
+            self.updateActiveSlice,
+            outputBox
         )
-        leftLabel.set_markup(leftText)
-        rightLabel.set_markup(rightText)
+
+        container.append(sliceSelector)
+
+    def updateDropDown(self,window, container, outputBox):
+        for child in get_children(container):
+            container.remove(child)
+        self.loadDropDown(container, outputBox)
+
+       
 
     def getProfilesView(self):
         body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -230,11 +182,22 @@ class SlicerWindow(Gtk.ApplicationWindow):
         body.set_hexpand(True)
         body.set_vexpand(True)
 
-        profilesText = Gtk.Label()
-        profilesText.set_markup(formatProfiles(self.slicer.profiles))
-        profilesText.set_hexpand(True)
-        profilesText.set_vexpand(True)
-        self.connect("updateProfiles", self.updateProfiles, profilesText)
+        textBox = Gtk.Box(hexpand=True,vexpand=True, orientation=Gtk.Orientation.HORIZONTAL)
+        set_margin(textBox, 35)
+
+        profilesTextLeft = Gtk.Label(
+            hexpand=True, halign=Gtk.Align.START, valign=Gtk.Align.START
+        )
+        profilesTextRight = Gtk.Label(
+            hexpand=True, halign=Gtk.Align.START, valign=Gtk.Align.START
+        )
+        leftText, rightText = splitArray(formatProfiles(self.slicer.profiles))
+        profilesTextLeft.set_markup(leftText)
+        profilesTextRight.set_markup(rightText)
+
+        self.connect(
+            "updateProfiles", self.updateProfiles, profilesTextLeft, profilesTextRight
+        )
 
         addProfileBtn = Gtk.Button(label="Create new profile")
         set_margin(addProfileBtn, 35)
@@ -243,13 +206,17 @@ class SlicerWindow(Gtk.ApplicationWindow):
             "clicked", self.spawnNewProfileWidget, self.slicer.topology.devices
         )
 
-        body.append(profilesText)
+        textBox.append(profilesTextLeft)
+        textBox.append(profilesTextRight)
+        body.append(textBox)
         body.append(addProfileBtn)
 
         return body
 
-    def updateProfiles(self, window, label):
-        label.set_markup(formatProfiles(self.slicer.profiles))
+    def updateProfiles(self, window, leftLabel, rightLabel):
+        leftText, rightText = splitArray(formatProfiles(self.slicer.profiles))
+        leftLabel.set_markup(leftText)
+        rightLabel.set_markup(rightText)
 
     def spawnNewProfileWidget(self, button, devices):
         npw = NewProfileWindow(devices, self.slicer.profiles[-1].id + 1)
@@ -259,7 +226,7 @@ class SlicerWindow(Gtk.ApplicationWindow):
         npw.connect("newProfileWindowClosed", self.newProfileWindowsClosed)
 
     def newProfileWindowsClosed(self, npw):
-        if npw.out.devices != []:
+        if npw.out.slices != []:
             self.slicer.profiles.append(npw.out)
         npw.destroy()
         self.emit("updateProfiles")
