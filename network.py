@@ -78,7 +78,7 @@ def listIp(net):
         if name[0] != "c" and name[0] != "s":
             conv.append(HostDevice(name, str(Node.MAC(net.get(name))) ,str(Node.IP(net.get(name)))))
     
-    f = open("devices",'w')
+    f = open("devices",'wb')
     f.write(pickle.dumps(conv))
     f.close()
 

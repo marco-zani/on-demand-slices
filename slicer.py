@@ -75,7 +75,7 @@ class Slicer:
         fileName = 'devices'
         while not exists(fileName):
             sleep(3)
-        f = open(fileName)
+        f = open(fileName, "rb")
         msg = f.read()
         f.close()
         #deleteFile(fileName)
