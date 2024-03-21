@@ -53,6 +53,7 @@ class Slicer:
     def toggleProfile(self, id):
         self.sliceActive = int(id)
         self.topology.activeConfiguration = self.topology.convertProfileInConfiguration(self.profiles[id])
+        print(self.topology.activeConfiguration)
         data = pickle.dumps(self.topology.activeConfiguration)
         self.sendUDP(data)
 
@@ -69,25 +70,21 @@ class Slicer:
         f.close()
         #deleteFile(fileName)
 
-    def sendMACs(self):
+    def sendDevices(self):
         macs = {}
-        fileName = 'macs'
+        fileName = 'devices'
         while not exists(fileName):
             sleep(3)
         f = open(fileName)
-        for el in f:
-            el = el.replace('\n','')
-            t = el.split('-')
-            macs.update({t[1]:t[0]})
+        msg = f.read()
         f.close()
         #deleteFile(fileName)
 
-        msg = pickle.dumps(macs)
         self.sendUDP(msg)
 
 
     def start(self):
         self.importTopology()
-        self.sendMACs()
+        self.sendDevices()
         while(self.acceptCommand()):
             sleep(0.5)
