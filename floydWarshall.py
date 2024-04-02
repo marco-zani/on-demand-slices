@@ -1,9 +1,9 @@
-def     initMatrix(n,prf, devices):
+def     initMatrix(n,prf_devices, devices):
     out = [[float('inf')] * n for _ in range(n)]
-    for el in prf:
+    for el in prf_devices:
         for _, endDev in devices[el]:
-            if endDev in prf:
-                out[prf.index(el)][prf.index(endDev)] = 1
+            if endDev in prf_devices:
+                out[prf_devices.index(el)][prf_devices.index(endDev)] = 1
     return out
 
 def shrinkTable(matrix, devices):
@@ -65,3 +65,23 @@ def convertToDict(matrix, devices):
     for el in matrix:
         out.update({devices[matrix.index(el)]:el})
     return out
+
+def add_min_bandwidth(conf, percentages):
+    slice_index_1 = 0
+    for _,slice1 in conf:
+        slice_index_2 = 0
+        for _,slice2 in conf:
+            if slice1 != slice2:
+                for sw1 in slice1:
+                    for sw2 in slice2:
+                        if sw1 == sw2:
+                            port_index_1 = 0
+                            for (port1, perc1), hosts1 in slice1[sw1]:
+                                port_index_2 = 0
+                                for (port2, _), _ in slice2[sw2]:
+                                    if port1 == port2:
+                                        conf[slice_index_1][1][sw1][port_index_1] = (port1, perc1-percentages[slice_index_2]), hosts1
+                                    port_index_2 += 1
+                                port_index_1 += 1
+            slice_index_2 += 1
+        slice_index_1 += 1

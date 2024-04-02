@@ -26,7 +26,7 @@ class Controller(RyuApp):
     def __init__(self, *args, **kwargs):
         super(Controller, self).__init__(*args, **kwargs)
         self.conf={}
-        self.macs = {}
+        self.macs = []
         self.pendigMod = []
         self.dpids = []
         self.modified = False

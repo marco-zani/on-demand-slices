@@ -21,6 +21,11 @@ def saveData(data, file_path):
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=2)
 
+class Slice():
+    def __init__(self, devices, minBandwidth) -> None:
+        self.devices = devices
+        self.minBandwidth = minBandwidth
+
 class Profile:
     def __init__(self,id, name, slices):
         self.id = id

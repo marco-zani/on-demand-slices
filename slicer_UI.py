@@ -22,8 +22,8 @@ def formatProfiles(profiles):
         sliceCount = 0
         for slice in profile.slices:
             sliceCount += 1
-            out = out + "\n " + "Slice #" + str(sliceCount) + ":" + "\n   "
-            for dev in slice:
+            out = out + "\n " + "Slice #" + str(sliceCount) + ":" + "\n   Reserved percentage: " + str(slice['minBandwidth'])+ "%\n   "
+            for dev in slice['devices']:
                 out = out + " " + dev
         out = out + "\n\n"
     return out
@@ -36,6 +36,7 @@ class SlicerWindow(Gtk.ApplicationWindow):
 
         self.slicer = Slicer()
         self.slicer.importTopology()
+        self.slicer.sendDevices()
 
         self.buildUI()
 
