@@ -1,14 +1,14 @@
 import gi
-from slicer import Profile
-from common import set_margin, get_children
+from src.slicer.slicer import Profile
+from src.common import set_margin, get_children
 from gi.repository import GObject as gobject
-from newSliceBox import NewSliceBox
+from src.UI.newSliceBox import NewSliceBox
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk
 
 
-class NewProfileWindow(Gtk.ApplicationWindow):
+class NewProfileWindow(Gtk.Dialog):
     def __init__(self, devices, id, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.out = []

@@ -3,9 +3,9 @@ import json
 from time import sleep
 from os.path import exists
 from os import remove as deleteFile
-from topology import TopologyStruct
+from src.slicer.topology import TopologyStruct
 import socket, pickle
-from common import UDP_IP, UDP_PORT
+from src.common import UDP_IP, UDP_PORT
 
 def loadProfiles():
         with open('profiles.json', 'r') as file:

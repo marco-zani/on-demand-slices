@@ -1,8 +1,5 @@
-import sys
 import gi
-from slicer import Slicer, Profile
-from common import set_margin
-from gi.repository import GObject as gobject
+from src.common import set_margin
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk

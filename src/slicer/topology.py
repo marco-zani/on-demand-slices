@@ -1,9 +1,9 @@
-import floydWarshall as fw
+import src.slicer.floydWarshall as fw
 
 class TopologyStruct:
     def __init__(self) -> None:
         self.devices = {}
-        self.activeConfiguration = None
+        self.activeConfiguration = []
         pass
 
     def addDevice(self, name):

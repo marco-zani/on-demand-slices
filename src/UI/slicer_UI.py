@@ -1,18 +1,17 @@
-import sys
 import gi
 
-from gi.repository import GObject
-from slicer import Slicer, Profile
-from common import set_margin, get_children, splitArray, formatDevices
-from newProfileWindow import NewProfileWindow
-from SimpleDropDown import SimpleDropDown
-from activeSliceBox import ActiveSliceBox
+from src.slicer.slicer import Slicer
+from src.common import set_margin, get_children, splitArray, formatDevices
+from src.UI.newProfileWindow import NewProfileWindow
+from src.UI.SimpleDropDown import SimpleDropDown
+from src.UI.activeSliceBox import ActiveSliceBox
+
+from gi.repository import Gtk, Adw
+from gi.repository import GObject as gobject
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-gi.require_version("Gio", "2.0")
-from gi.repository import Gtk, Adw, Gio
-from gi.repository import GObject as gobject
+
 
 
 def formatProfiles(profiles):
@@ -142,7 +141,7 @@ class SlicerWindow(Gtk.ApplicationWindow):
 
     def buildActiveConfUI(self, box):
         sliceCount = 1
-        if self.slicer.topology.activeConfiguration == None:
+        if self.slicer.topology.activeConfiguration == []:
             label = Gtk.Label(hexpand=True)
             label.set_markup("No slice has been selected")
             box.append(label)
@@ -221,6 +220,7 @@ class SlicerWindow(Gtk.ApplicationWindow):
 
     def spawnNewProfileWidget(self, button, devices):
         npw = NewProfileWindow(devices, self.slicer.profiles[-1].id + 1)
+        npw.set_transient_for(self)
         npw.set_modal(self)
         npw.present()
 
@@ -233,7 +233,7 @@ class SlicerWindow(Gtk.ApplicationWindow):
         self.emit("updateProfiles")
 
 
-class visualizer(Adw.Application):
+class Visualizer(Adw.Application):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.connect("activate", self.on_activate)
@@ -242,12 +242,7 @@ class visualizer(Adw.Application):
         self.win = SlicerWindow(application=app)
         self.win.present()
 
-
 gobject.type_register(SlicerWindow)
 gobject.signal_new(
     "updateProfiles", SlicerWindow, gobject.SignalFlags.RUN_FIRST, gobject.TYPE_NONE, ()
 )
-
-app = visualizer(application_id="com.OnDemandSlices.GTKSlicer")
-
-app.run(sys.argv)
