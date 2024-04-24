@@ -34,8 +34,6 @@ class SlicerWindow(Gtk.ApplicationWindow):
         super().__init__(*args, **kwargs)
 
         self.slicer = Slicer()
-        self.slicer.importTopology()
-        self.slicer.sendDevices()
 
         self.buildUI()
 

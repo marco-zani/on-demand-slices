@@ -7,11 +7,6 @@ from src.slicer.topology import TopologyStruct
 import socket, pickle
 from src.common import UDP_IP, UDP_PORT
 
-def loadProfiles():
-        with open('profiles.json', 'r') as file:
-            data = json.load(file)
-        return data        
-
 def uploadData(file_path):
     with open(file_path, 'r') as file:
         data = json.load(file)
@@ -37,15 +32,20 @@ class Slicer:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         #Variabile globale per slice attiva, valore default
         self.sliceActive = 0
-        self.topology = TopologyStruct()
+
         self.profiles = self.getProfiles()
+        
+        self.topology = TopologyStruct()       
+        self.importTopology()
+
+        self.sendDevices()
         pass
 
     def getProfiles(self):
         out = []
 
-        data = loadProfiles()
-        #Ciclo while che stampa ogni elemento del file
+        with open('profiles.json', 'r') as file:
+            data = json.load(file)
 
         for el in data:
             t = Profile(el["id"],el["name"],el["slices"])
@@ -55,14 +55,6 @@ class Slicer:
     def sendUDP(self, data):
         self.sock.sendto(data, ("0.0.0.0", UDP_PORT))
 
-    def toggleProfile(self, id):
-        self.sliceActive = int(id)
-        self.topology.activeConfiguration = self.topology.convertProfileInConfiguration(self.profiles[id])
-        print(self.topology.activeConfiguration)
-        data = pickle.dumps(self.topology.activeConfiguration)
-        self.sendUDP(data)
-
-        
     def importTopology(self):
         fileName = 'links'
         while not exists(fileName):
@@ -76,7 +68,6 @@ class Slicer:
         #deleteFile(fileName)
 
     def sendDevices(self):
-        macs = {}
         fileName = 'devices'
         while not exists(fileName):
             sleep(3)
@@ -87,9 +78,9 @@ class Slicer:
 
         self.sendUDP(msg)
 
-
-    def start(self):
-        self.importTopology()
-        self.sendDevices()
-        while(self.acceptCommand()):
-            sleep(0.5)
+    def toggleProfile(self, id):
+        self.sliceActive = int(id)
+        self.topology.activeConfiguration = self.topology.convertProfileInConfiguration(self.profiles[id])
+        print(self.topology.activeConfiguration)
+        data = pickle.dumps(self.topology.activeConfiguration)
+        self.sendUDP(data)

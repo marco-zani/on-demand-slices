@@ -1,10 +1,30 @@
-def     initMatrix(n,prf_devices, devices):
+def initMatrix(n,prf_devices, devices):
     out = [[float('inf')] * n for _ in range(n)]
     for el in prf_devices:
         for _, endDev in devices[el]:
             if endDev in prf_devices:
                 out[prf_devices.index(el)][prf_devices.index(endDev)] = 1
     return out
+
+def compute_next_hop(adjMatrix):
+    n = len(adjMatrix)
+    next_hop = [[-1] * n for _ in range(n)]
+
+    # Initialize the next_hop matrix based on direct edges
+    for i in range(n):
+        for j in range(n):
+            if i != j and adjMatrix[i][j] != float('inf'):
+                next_hop[i][j] = j
+
+    # Floyd-Warshall algorithm
+    for k in range(n):
+        for i in range(n):
+            for j in range(n):
+                if adjMatrix[i][k] + adjMatrix[k][j] < adjMatrix[i][j]:
+                    adjMatrix[i][j] = adjMatrix[i][k] + adjMatrix[k][j]
+                    next_hop[i][j] = next_hop[i][k]
+
+    return next_hop
 
 def shrinkTable(matrix, devices):
     n = len(matrix)
@@ -30,6 +50,12 @@ def shrinkTable(matrix, devices):
     
     return out
 
+def convertToDict(matrix, devices):
+    out = {}
+    for el in matrix:
+        out.update({devices[matrix.index(el)]:el})
+    return out
+
 def extractSwitches(matrix):
     out = {}
 
@@ -37,33 +63,6 @@ def extractSwitches(matrix):
         if name[0] == 's':
             out.update({name:matrix[name]})
 
-    return out
-
-        
-def compute_next_hop(adjMatrix):
-    n = len(adjMatrix)
-    next_hop = [[-1] * n for _ in range(n)]
-
-    # Initialize the next_hop matrix based on direct edges
-    for i in range(n):
-        for j in range(n):
-            if i != j and adjMatrix[i][j] != float('inf'):
-                next_hop[i][j] = j
-
-    # Floyd-Warshall algorithm
-    for k in range(n):
-        for i in range(n):
-            for j in range(n):
-                if adjMatrix[i][k] + adjMatrix[k][j] < adjMatrix[i][j]:
-                    adjMatrix[i][j] = adjMatrix[i][k] + adjMatrix[k][j]
-                    next_hop[i][j] = next_hop[i][k]
-
-    return next_hop
-
-def convertToDict(matrix, devices):
-    out = {}
-    for el in matrix:
-        out.update({devices[matrix.index(el)]:el})
     return out
 
 def add_min_bandwidth(conf, percentages):

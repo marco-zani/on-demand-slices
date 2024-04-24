@@ -18,13 +18,6 @@ class TopologyStruct:
             self.devices[srcName].append((srcPort,dstName))
         if (dstPort, srcName) not in self.devices[dstName]:
             self.devices[dstName].append((dstPort,srcName))    
-
-    def getLinks(self):
-        out = []
-        for dev in self.devices:
-            for port, endDev in self.devices[dev]:
-                out.append(dev + " -eth" + port + "-> " + endDev)
-        return out
     
     def getPort(self, src, dst):
         for port, device in self.devices[src]:
