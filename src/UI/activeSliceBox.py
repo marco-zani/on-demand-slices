@@ -1,8 +1,6 @@
-import sys
 import gi
-from slicer import Slicer, Profile
-from common import set_margin, splitArray, formatDevices
-from gi.repository import GObject as gobject
+
+from src.common import set_margin, splitArray, formatDevices
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk
@@ -50,8 +48,9 @@ class ActiveSliceBox(Gtk.Box):
                     usedPorts.append(port)
 
                 for port, conn in devices[dev]:
-                    if port in usedPorts:
-                        tempDev[dev].append((port, conn))
+                    for usedPort, _ in usedPorts:
+                        if port == usedPort:
+                            tempDev[dev].append((port, conn))
                 out = out + formatDevices(tempDev)
             else:
                 tempDev[dev] = devices[dev]

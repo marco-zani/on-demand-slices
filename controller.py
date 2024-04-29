@@ -16,7 +16,8 @@ from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import packet, ethernet
 from ryu.lib.dpid import dpid_to_str
 
-from common import UDP_IP,UDP_PORT, BUFFER_SIZE, HostDevice
+from src.common import UDP_IP,UDP_PORT, BUFFER_SIZE, HostDevice
+
 import threading
 import socket, pickle
 

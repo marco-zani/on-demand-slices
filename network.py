@@ -3,6 +3,13 @@ from mininet.net import Mininet
 from mininet.node import OVSKernelSwitch, RemoteController, Node
 from mininet.cli import CLI
 from mininet.link import TCLink
+import pickle
+
+class HostDevice:
+    def __init__(self, hostName, MAC, IP) -> None:
+        self.hostName = hostName
+        self.MAC = MAC
+        self.IP = IP
 
 class Topology(Topo):
     def __init__(self):
@@ -69,11 +76,10 @@ def listIp(net):
     conv = list()
     for name, _ in devs:
         if name[0] != "c" and name[0] != "s":
-            conv.append(name +"-"+ str(Node.MAC(net.get(name))))
+            conv.append(HostDevice(name, str(Node.MAC(net.get(name))) ,str(Node.IP(net.get(name)))))
     
-    f = open("macs",'w')
-    for el in conv :
-        f.write(el+'\n')
+    f = open("devices",'wb')
+    f.write(pickle.dumps(conv))
     f.close()
 
 
