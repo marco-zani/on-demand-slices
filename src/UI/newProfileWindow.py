@@ -1,14 +1,14 @@
 import gi
-from slicer import Profile
-from common import set_margin, get_children
+from src.slicer.slicer import Profile
+from src.common import set_margin, get_children
 from gi.repository import GObject as gobject
-from newSliceBox import NewSliceBox
+from src.UI.newSliceBox import NewSliceBox
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk
 
 
-class NewProfileWindow(Gtk.ApplicationWindow):
+class NewProfileWindow(Gtk.Dialog):
     def __init__(self, devices, id, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.out = []
@@ -57,7 +57,8 @@ class NewProfileWindow(Gtk.ApplicationWindow):
         slices = []
         for child in get_children(box):
             h,s = child.getSelected()
-            slices.append(h+s)
+            p = child.getPercentage()
+            slices.append({'devices':h+s, 'minBandwidth':p})
 
 
         self.out = Profile(self.profileId, self.nameEntry.get_text(), slices)
@@ -74,11 +75,14 @@ class NewProfileWindow(Gtk.ApplicationWindow):
                 switches.append(dev)
 
         sliceCount = 1
+        netSupply = 100
         for child in get_children(box):
             h, s = child.getSelected()
+            p = child.getPercentage()
 
             if len(h) > 0:
-                sliceBox = NewSliceBox(sliceCount, h + s, False)
+                netSupply = netSupply-  p
+                sliceBox = NewSliceBox(sliceCount, h + s, False, p, netSupply+p)
                 sliceCount += 1
                 box.append(sliceBox)
 
@@ -88,9 +92,12 @@ class NewProfileWindow(Gtk.ApplicationWindow):
 
             box.remove(child)
 
-        if len(remainingHosts) > 0:
-            newSliceBox = NewSliceBox(sliceCount, remainingHosts + switches, True)
-        box.append(newSliceBox)
+        if len(remainingHosts) > 0 and netSupply > 0:
+            newSliceBox = NewSliceBox(sliceCount, remainingHosts + switches, True, 0, netSupply)
+            box.append(newSliceBox)
+        else :
+            button.set_sensitive(False)
+        
 
 
 gobject.type_register(NewProfileWindow)

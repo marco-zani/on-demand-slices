@@ -44,10 +44,10 @@ def formatDevices(devices):
         if type(conn) != list:
             conn = [conn]
 
-        lastItem = conn[-1]
+        
 
         for port, connDev in conn:
-            if (port, connDev) == lastItem:
+            if len(conn) < 2 or (port, connDev) == conn[-1]:
                 out = out + "  └─ Eth" + port + " ── " + connDev + "\n\n"
             else:
                 out = out + "  ├─ Eth" + port + " ── " + connDev + "\n"

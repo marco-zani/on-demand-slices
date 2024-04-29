@@ -8,85 +8,114 @@
     "id": 1,
     "name": "simpleSlice",
     "slices": [
-      [
-        "h1",
-        "s1",
-        "h2",
-        "s2",
-        "h3",
-        "h4"
-      ]
+      {
+        "devices": [
+          "h1",
+          "s1",
+          "h2",
+          "s2",
+          "h3",
+          "h4"
+        ],
+        "minBandwidth": 100.0
+      }
     ]
   },
   {
     "id": 2,
     "name": "PopulatedSlice",
     "slices": [
-      [
-        "h1",
-        "s1",
-        "h2",
-        "h3",
-        "s2",
-        "h4",
-        "s3",
-        "h5",
-        "h6"
-      ]
+      {
+        "devices": [
+          "h1",
+          "s1",
+          "h2",
+          "h3",
+          "s2",
+          "h4",
+          "s3",
+          "h5",
+          "h6"
+        ],
+        "minBandwidth": 100.0
+      }
     ]
   },
   {
     "id": 3,
     "name": "doubleSlice",
     "slices": [
-      [
-        "h1",
-        "s1",
-        "s3",
-        "h5"
-      ],
-      [
-        "h3",
-        "s2",
-        "s4",
-        "h7"
-      ]
+      {
+        "devices": [
+          "h1",
+          "s1",
+          "s3",
+          "h5"
+        ],
+        "minBandwidth": 100.0
+      },
+      {
+        "devices": [
+          "h3",
+          "s2",
+          "s4",
+          "h7"
+        ],
+        "minBandwidth": 100.0
+      }
+      
+      
     ]
   },
   {
     "id": 3,
     "name": "sharedSwitch",
     "slices": [
-      [
-        "h1",
-        "s1",
-        "s3",
-        "h6"
-      ],
-      [
-        "h2",
-        "s1",
-        "s2",
-        "h3"
-      ]
+      {
+        "devices": [
+          "h1",
+          "s1",
+          "s3",
+          "h6"
+        ],
+        
+        "minBandwidth": 100.0
+      },
+      {
+        "devices": [
+          "h2",
+          "s1",
+          "s2",
+          "h3"
+        ],
+        "minBandwidth": 100.0
+      }
     ]
   },
   {
     "id": 3,
     "name": "sharedLink",
     "slices": [
-      [
-        "h1",
-        "s1",
-        "s3",
-        "h6"
-      ],
-      [
-        "h2",
-        "s1",
-        "s3",
-        "h5"
-      ]
+      {
+        "devices": [
+          "h1",
+          "s1",
+          "s3",
+          "h6"
+        ],
+        "minBandwidth": 70.0
+      },
+      {
+        "devices": 
+        [
+          "h2",
+          "s1",
+          "s3",
+          "h5"
+        ],
+        "minBandwidth": 30.0
+      }
+      
     ]
   }
 ]
