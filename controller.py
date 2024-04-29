@@ -15,7 +15,9 @@ from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER, set_ev_cl
 from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import packet, ethernet
 from ryu.lib.dpid import dpid_to_str
-from src.common import UDP_IP,UDP_PORT, BUFFER_SIZE
+
+from src.common import UDP_IP,UDP_PORT, BUFFER_SIZE, HostDevice
+
 import threading
 import socket, pickle
 
@@ -26,7 +28,7 @@ class Controller(RyuApp):
     def __init__(self, *args, **kwargs):
         super(Controller, self).__init__(*args, **kwargs)
         self.conf={}
-        self.macs = []
+        self.devices = []
         self.pendigMod = []
         self.dpids = []
         self.modified = False
@@ -43,16 +45,14 @@ class Controller(RyuApp):
             data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
             if firstMessage:
                 firstMessage = False
-                self.macs = pickle.loads(data)
-                for el in self.macs:
+                self.devices = pickle.loads(data)
+                for el in self.devices:
                     print(el)
             else:
                 self.conf = pickle.loads(data)
                 self.modified = True
                 print("new configuration received!")
             
-
-
             if data == b"off":
                 break
             
@@ -108,14 +108,19 @@ class Controller(RyuApp):
         switchName = "s" + str(dpid)
         srcName = src
         dstName = dst
-        if src in self.macs:
-            srcName = self.macs[src]
-        if dst in self.macs:
-            dstName = self.macs[src]
-        
-        print("Source: " + str(srcName) + " | Destinazione: " + str(dstName) + " | In_port: " + str(in_port) + " | Dpid: " + str(switchName))
+        for device in self.devices:
+            if src in device.MAC:
+                srcName = device.hostName
+            if dst in device.MAC:
+                dstName = device.hostName
 
-        out_port = self.getPort(in_port,switchName,dst)
+        print(self.devices)
+        
+        print("Source: " + str(srcName) + " | Destinazione: " + str(dstName))
+
+        out_port = self.getPort(srcName,switchName,dstName)
+        print("Get port output: " + str(out_port))
+        print("dati: " + str(self.conf))
         if out_port != None:
             if len(self.pendigMod) != 0 and dpid not in self.pendigMod:
                 print("before:", self.pendigMod)
@@ -146,6 +151,7 @@ class Controller(RyuApp):
         the corresponding Flow-Mod. This is then installed to a given datapath
         at a given priority.
         '''
+
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
         inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
@@ -154,24 +160,15 @@ class Controller(RyuApp):
         datapath.send_msg(mod)
 
 
-
-    def getPort(self, in_port, switchName, dst):
+    def getPort(self, srcName, switchName, dstName):
         out = None
         
-        if dst in self.macs:
-            dstName = self.macs[dst]
-        else:
-            return out
+        for slice in self.conf:
+            if srcName in slice[0]:
+                if switchName in slice[1]:                
+                    for port, connDevs in slice[1][switchName]:
+                        if dstName in connDevs:
+                            out = int(port[0])
+                            break
         
-        if switchName in self.conf:
-            for port, connDevs in self.conf[switchName]:
-                if dstName in connDevs:
-                    out = int(port)
-                    break
-            
-        print("Get port output: " + str(out) )
         return out
-
-
-
-        
