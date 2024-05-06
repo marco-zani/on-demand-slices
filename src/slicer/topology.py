@@ -30,7 +30,7 @@ class TopologyStruct:
         max_perc = []
         for slice in prf.slices:   
             hosts = []
-            max_perc.append(float(slice['minBandwidth'])/100.0)
+            max_perc.append(int((slice['minBandwidth'])/10))
             for dev in slice['devices']:
                 if dev[0] == 'h':
                     hosts.append(dev)
