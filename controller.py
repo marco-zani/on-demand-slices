@@ -16,8 +16,7 @@ from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import packet, ethernet
 from ryu.lib.dpid import dpid_to_str
 
-from src.common import UDP_IP,UDP_PORT, BUFFER_SIZE, HostDevice
-
+from common import UDP_IP,UDP_PORT, BUFFER_SIZE, HostDevice
 import threading
 import socket, pickle
 
@@ -71,7 +70,6 @@ class Controller(RyuApp):
         parser = datapath.ofproto_parser
         match = parser.OFPMatch()
         actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER, ofproto.OFPCML_NO_BUFFER)]
-        print("Handshake taken place with {}".format(dpid_to_str(datapath.id)))
         self.__add_flow(datapath, 0, match, actions)
 
 
@@ -91,7 +89,6 @@ class Controller(RyuApp):
         dpid = datapath.id
         if dpid not in self.dpids:
             self.dpids.append(dpid)
-            print("Registered switches:", self.dpids)
         pkt = packet.Packet(msg.data)
         in_port = msg.match['in_port']
 
@@ -113,13 +110,9 @@ class Controller(RyuApp):
                 srcName = device.hostName
             if dst in device.MAC:
                 dstName = device.hostName
-
-        print(self.devices)
         
-        print("Source: " + str(srcName) + " | Destinazione: " + str(dstName))
-
-        out_port = self.getPort(srcName,switchName,dstName)
-        print("Get port output: " + str(out_port))
+        out_port,queue_id = self.getPort(srcName,switchName,dstName)
+        print("Source: " + str(srcName) + " | Destinazione: " + str(dstName) + " | Out_port: " + str(out_port))
         print("dati: " + str(self.conf))
         if out_port != None:
             if len(self.pendigMod) != 0 and dpid not in self.pendigMod:
@@ -134,9 +127,10 @@ class Controller(RyuApp):
             match=parser.OFPMatch(in_port=in_port,eth_dst=dst,eth_src=src)
 
             data = msg.data if msg.buffer_id == ofproto.OFP_NO_BUFFER else None
-            #actions = [datapath.ofproto_parser.OFPActionOutput(ofproto.OFPP_FLOOD)]
 
             actions = [parser.OFPActionOutput(out_port)]
+            actions.insert(0,parser.OFPActionSetQueue(queue_id))
+
             self.__add_flow(datapath,1,match,actions)
 
             out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id, in_port=in_port, actions=actions, data=data)
@@ -156,12 +150,12 @@ class Controller(RyuApp):
         parser = datapath.ofproto_parser
         inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
         mod = parser.OFPFlowMod(datapath=datapath, priority=priority, match=match, instructions=inst)
-        self.logger.info("Flow-Mod written to {}".format(dpid_to_str(datapath.id)))
         datapath.send_msg(mod)
 
 
     def getPort(self, srcName, switchName, dstName):
         out = None
+        queue = None
         
         for slice in self.conf:
             if srcName in slice[0]:
@@ -169,6 +163,7 @@ class Controller(RyuApp):
                     for port, connDevs in slice[1][switchName]:
                         if dstName in connDevs:
                             out = int(port[0])
+                            queue = int(port[1])
                             break
         
-        return out
+        return out,queue
