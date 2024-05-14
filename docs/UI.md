@@ -8,7 +8,7 @@ The slicer offers 2 main functions: The initialization and the ability to toggle
 The inizialization requires the slicer to load all the data from the `profiles.json` file and convert it to usable `Profile` objects. The JSON file is organized to store `id` and `name` of a profile, plus an array of `slices`, each element containing the list of `devices` and a `minBandwidth` value
 Afterwards the slicer creates an empty `Topology` object and loads the different links in the network topology from mininet. Lastly it takes the association between hostname, and its IP and MAC addresses and sends it to the controller using the `sendDevices()` function.
 
-# Enabling a profile
+### Enabling a profile
 The other function, `toggleProfile()`, uses the index passed as argument, and requests to the `Topology` to convert the profile using that index into an usable controller configuration. It then converts the configuration into a stream of bytes and sends it to the controller using the `sendUDP()` function.
 The convertion into a `bytestream` using the `pickle` library is important because it automatically manages the convertion from `bytestream` into a dictionary instead of needing to manually parse a `str` into the dictionary
 
@@ -77,7 +77,7 @@ At the bottom of the panel is available a button used to launch a new window use
 With the creation of a new window, the primary application transfers full focus to it, thereby directing user attention to the new widget while preventing interference with the main program. This is all done in the `spawnNewProfileWidget()` function, who also connects the `newProfileWindowClosed` event to the `newProfileWindowsClosed()` function, responable of inserting the newly created profile inside the slicer list and emitting the `updateProfiles` signal
 
 ## New Profile window
-The widnow presents itself only with the textfield used to capture the profile name, plus two buttons for adding slices and saving the profile. In case the profile is saved without any slices inside, all the changes are ignored and no profile is created in the main application.
+The window presents itself only with the textfield used to capture the profile name, plus two buttons for adding slices and saving the profile. In case the profile is saved without any slices inside, all the changes are ignored and no profile is created in the main application.
 
 When clicking the "add slice" button, a small widget is added to the window using the `NewSliceBox` class. This class builds a `SpinButton` used for keeping track of the minimum bandwidth reserved for the slice, plus a selection of check buttons listing the different devices who can be contained inside the slice
 Each time a new slice is created, the program removes previously selected hosts and reduces the maximum value for reserved bandwidth. This behavior blocks the possibility of having the same host on multiple slices, or slices who compete for the same bandwidth. If the maximum amount of reserved bandwidth is reached, or all hosts have been selected, the "add slice" button doesn't perform any action
