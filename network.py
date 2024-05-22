@@ -4,7 +4,7 @@ from mininet.node import OVSKernelSwitch, RemoteController, Node
 from mininet.cli import CLI
 from mininet.link import TCLink
 import os
-import pickle
+import dill
 
 
 class HostDevice:
@@ -116,7 +116,7 @@ def listIp(net):
             )
 
     with open("devices", "wb") as f:
-        f.write(pickle.dumps(conv))
+        f.write(dill.dumps(conv))
     
 
 

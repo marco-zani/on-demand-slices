@@ -10,7 +10,7 @@ Afterwards the slicer creates an empty `Topology` object and loads the different
 
 ### Enabling a profile
 The other function, `toggleProfile()`, uses the index passed as argument, and requests to the `Topology` to convert the profile using that index into an usable controller configuration. It then converts the configuration into a stream of bytes and sends it to the controller using the `sendUDP()` function.
-The convertion into a `bytestream` using the `pickle` library is important because it automatically manages the convertion from `bytestream` into a dictionary instead of needing to manually parse a `str` into the dictionary
+The convertion into a `bytestream` using the `dill` library is important because it automatically manages the convertion from `bytestream` into a dictionary instead of needing to manually parse a `str` into the dictionary
 
 ## Topology
 The `Topology` class is responable with managing the information regarding the network topology, keeping a copy of the current active configuration and converting a given profile into a controller configuration

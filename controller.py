@@ -16,9 +16,10 @@ from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import packet, ethernet
 from ryu.lib.dpid import dpid_to_str
 
-from common import UDP_IP,UDP_PORT, BUFFER_SIZE, HostDevice
+from src.common import UDP_IP,UDP_PORT, BUFFER_SIZE
+from network import HostDevice
 import threading
-import socket, pickle
+import socket, dill
 
 class Controller(RyuApp):
 
@@ -29,6 +30,7 @@ class Controller(RyuApp):
         self.conf={}
         self.devices = []
         self.pendigMod = []
+        self.datapaths = []
         self.dpids = []
         self.modified = False
         p = threading.Thread(target=self.udpClient, args=())
@@ -44,11 +46,13 @@ class Controller(RyuApp):
             data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
             if firstMessage:
                 firstMessage = False
-                self.devices = pickle.loads(data)
+                self.devices = dill.loads(data)
+                print("received devices:")
                 for el in self.devices:
-                    print(el)
+                    print(el.hostName, end=" ")
+                print("")
             else:
-                self.conf = pickle.loads(data)
+                self.conf = dill.loads(data)
                 self.modified = True
                 print("new configuration received!")
             
@@ -70,7 +74,7 @@ class Controller(RyuApp):
         parser = datapath.ofproto_parser
         match = parser.OFPMatch()
         actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER, ofproto.OFPCML_NO_BUFFER)]
-        self.__add_flow(datapath, 0, match, actions)
+        self.__add_flow(datapath, 0, match, actions, 0)
 
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
@@ -84,6 +88,8 @@ class Controller(RyuApp):
         '''
         msg = ev.msg
         datapath = msg.datapath
+        if datapath not in self.datapaths:
+            self.datapaths.append(datapath)
         ofproto = msg.datapath.ofproto
         parser = msg.datapath.ofproto_parser
         dpid = datapath.id
@@ -93,7 +99,7 @@ class Controller(RyuApp):
         in_port = msg.match['in_port']
 
         if self.modified:
-            self.pendigMod = self.dpids
+            self.wipe_tables()
             self.modified = False
 
         eth_pkt = pkt.get_protocol(ethernet.ethernet)
@@ -113,17 +119,9 @@ class Controller(RyuApp):
         
         out_port,queue_id = self.getPort(srcName,switchName,dstName)
         print("Source: " + str(srcName) + " | Destinazione: " + str(dstName) + " | Out_port: " + str(out_port))
-        print("dati: " + str(self.conf))
-        if out_port != None:
-            if len(self.pendigMod) != 0 and dpid not in self.pendigMod:
-                print("before:", self.pendigMod)
-                if dpid in self.pendigMod:
-                    self.pendigMod.remove(dpid)
-                    print("after:", self.pendigMod)
-                    match = parser.OFPMatch()
-                    actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER, ofproto.OFPCML_NO_BUFFER)]
-                    self.__add_flow(datapath,1,match,actions)
-            
+        t = "{...}" if self.conf else "{ }"
+        print("dati: " + t)
+        if out_port != None:            
             match=parser.OFPMatch(in_port=in_port,eth_dst=dst,eth_src=src)
 
             data = msg.data if msg.buffer_id == ofproto.OFP_NO_BUFFER else None
@@ -131,13 +129,13 @@ class Controller(RyuApp):
             actions = [parser.OFPActionOutput(out_port)]
             actions.insert(0,parser.OFPActionSetQueue(queue_id))
 
-            self.__add_flow(datapath,1,match,actions)
+            self.__add_flow(datapath,1,match,actions,1)
 
             out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id, in_port=in_port, actions=actions, data=data)
 
             datapath.send_msg(out)
 
-    def __add_flow(self, datapath, priority, match, actions):
+    def __add_flow(self, datapath, priority, match, actions, table):
         '''
         Install Flow Table Modification
 
@@ -149,7 +147,7 @@ class Controller(RyuApp):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
         inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
-        mod = parser.OFPFlowMod(datapath=datapath, priority=priority, match=match, instructions=inst)
+        mod = parser.OFPFlowMod(datapath=datapath, priority=priority, match=match, instructions=inst, table_id=table)
         datapath.send_msg(mod)
 
 
@@ -167,3 +165,28 @@ class Controller(RyuApp):
                             break
         
         return out,queue
+    
+    def wipe_tables(self):
+        print("Wiping forwarding tables")
+        for datapath in self.datapaths:
+                self.remove_flows(datapath)
+
+    def remove_flows(self, datapath):
+        parser = datapath.ofproto_parser
+        empty_match = parser.OFPMatch()
+        instructions = []
+        flow_mod = self.remove_table_flows(datapath,
+                                        empty_match, instructions)
+        datapath.send_msg(flow_mod)
+    
+
+    def remove_table_flows(self, datapath, match, instructions):
+        ofproto = datapath.ofproto
+        flow_mod = datapath.ofproto_parser.OFPFlowMod(datapath, 0, 0, 1,
+                                                      ofproto.OFPFC_DELETE, 0, 0,
+                                                      1,
+                                                      ofproto.OFPCML_NO_BUFFER,
+                                                      ofproto.OFPP_ANY,
+                                                      ofproto.OFPG_ANY, 0,
+                                                      match, instructions)
+        return flow_mod

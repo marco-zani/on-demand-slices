@@ -4,7 +4,7 @@ from time import sleep
 from os.path import exists
 from os import remove as deleteFile
 from src.slicer.topology import TopologyStruct
-import socket, pickle
+import socket, dill
 from src.common import UDP_IP, UDP_PORT
 
 def uploadData(file_path):
@@ -82,5 +82,5 @@ class Slicer:
         self.sliceActive = int(id)
         self.topology.activeConfiguration = self.topology.convertProfileInConfiguration(self.profiles[id])
         print(self.topology.activeConfiguration)
-        data = pickle.dumps(self.topology.activeConfiguration)
+        data = dill.dumps(self.topology.activeConfiguration)
         self.sendUDP(data)
