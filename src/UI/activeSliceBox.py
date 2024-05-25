@@ -7,14 +7,15 @@ from gi.repository import Gtk
 
 
 class ActiveSliceBox(Gtk.Box):
-    def __init__(self, id, conf, devices, *args, **kwargs):
+    def __init__(self, id, conf, devices, perc,*args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.set_orientation(Gtk.Orientation.VERTICAL)
         set_margin(self, 10)
 
         sliceLabel = Gtk.Label(hexpand=True, halign=Gtk.Align.START, margin_bottom=5)
-        sliceLabel.set_markup("<b>Slice #" + str(id) + ":</b>")
+        sliceLabel.set_markup("<b>Slice #" + str(id) + ":</b>\nMax bandwidth: " + str(perc)
+                               + "%")
 
         textBox = Gtk.Box(hexpand=True)
 

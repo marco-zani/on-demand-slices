@@ -5,7 +5,7 @@ The back-end is composed by the class `Slicer` who manages, creates and shares t
 The slicer offers 2 main functions: The initialization and the ability to toggle a specific profile
 
 ### Initialization
-The inizialization requires the slicer to load all the data from the `profiles.json` file and convert it to usable `Profile` objects. The JSON file is organized to store `id` and `name` of a profile, plus an array of `slices`, each element containing the list of `devices` and a `minBandwidth` value
+The inizialization requires the slicer to load all the data from the `profiles.json` file and convert it to usable `Profile` objects. The JSON file is organized to store `id` and `name` of a profile, plus an array of `slices`, each element containing the list of `devices` and a `maxBandwidth` value
 Afterwards the slicer creates an empty `Topology` object and loads the different links in the network topology from mininet. Lastly it takes the association between hostname, and its IP and MAC addresses and sends it to the controller using the `sendDevices()` function.
 
 ### Enabling a profile
@@ -48,7 +48,7 @@ It converts the list of lists into a dictionary, using the device associated wit
 Exchanges the device name used inside the tuples in the dictionary values for the port to use to reach them
 ### extractSwitches()
 Removes all keys regarding devices that are not switches, since the controller has no use for them
-### add_min_bandwidth()
+### add_max_bandwidth()
 It compares all links which are common between slices, if any are found, it enforces the each link to split bandwidth according to the required value
 
 

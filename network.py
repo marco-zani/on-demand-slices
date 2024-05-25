@@ -69,7 +69,7 @@ def qos(switches):
         for i in range(1,11):
             i = str(i)
             queuecmd += (
-                "-- --id=@q" + i + " create queue other-config:max-rate=" + i + "00000000 "
+                "-- --id=@q" + i + " create queue other-config:max-rate=" + i + "00000 "
             )
         os.popen(queuecmd)
 
