@@ -21,7 +21,7 @@ def formatProfiles(profiles):
         sliceCount = 0
         for slice in profile.slices:
             sliceCount += 1
-            out = out + "\n " + "Slice #" + str(sliceCount) + ":" + "\n   Reserved percentage: " + str(slice['minBandwidth'])+ "%\n   "
+            out = out + "\n " + "Slice #" + str(sliceCount) + ":" + "\n   Reserved percentage: " + str(slice['maxBandwidth'])+ "%\n   "
             for dev in slice['devices']:
                 out = out + " " + dev
         out = out + "\n\n"
@@ -145,7 +145,8 @@ class SlicerWindow(Gtk.ApplicationWindow):
             box.append(label)
         else:
             for conf in self.slicer.topology.activeConfiguration:
-                t = ActiveSliceBox(sliceCount, conf, self.slicer.topology.devices)
+                t = ActiveSliceBox(sliceCount, conf, self.slicer.topology.devices, 
+                                   self.slicer.profiles[self.slicer.sliceActive].slices[sliceCount-1]["maxBandwidth"])
                 box.append(t)
                 sliceCount += 1
 

@@ -65,7 +65,7 @@ def extractSwitches(matrix):
 
     return out
 
-def add_min_bandwidth(conf, percentages):
+def add_max_bandwidth(conf, percentages):
     slice_index_1 = 0
     for _,slice1 in conf:
         slice_index_2 = 0
@@ -79,7 +79,7 @@ def add_min_bandwidth(conf, percentages):
                                 port_index_2 = 0
                                 for (port2, _), _ in slice2[sw2]:
                                     if port1 == port2:
-                                        conf[slice_index_1][1][sw1][port_index_1] = (port1, int(perc1*10)-percentages[slice_index_2]), hosts1
+                                        conf[slice_index_1][1][sw1][port_index_1] = (port1, int(perc1)-percentages[slice_index_2]), hosts1
                                     port_index_2 += 1
                                 port_index_1 += 1
             slice_index_2 += 1

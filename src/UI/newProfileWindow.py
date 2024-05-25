@@ -58,7 +58,7 @@ class NewProfileWindow(Gtk.Dialog):
         for child in get_children(box):
             h,s = child.getSelected()
             p = child.getPercentage()
-            slices.append({'devices':h+s, 'minBandwidth':p})
+            slices.append({'devices':h+s, 'maxBandwidth':p})
 
 
         self.out = Profile(self.profileId, self.nameEntry.get_text(), slices)

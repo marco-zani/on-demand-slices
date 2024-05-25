@@ -17,7 +17,7 @@
           "h3",
           "h4"
         ],
-        "minBandwidth": 100.0
+        "maxBandwidth":100
       }
     ]
   },
@@ -37,7 +37,7 @@
           "h5",
           "h6"
         ],
-        "minBandwidth": 100.0
+        "maxBandwidth":100
       }
     ]
   },
@@ -52,7 +52,7 @@
           "s3",
           "h5"
         ],
-        "minBandwidth": 100.0
+        "maxBandwidth":100
       },
       {
         "devices": [
@@ -61,14 +61,14 @@
           "s4",
           "h7"
         ],
-        "minBandwidth": 100.0
+        "maxBandwidth":100
       }
       
       
     ]
   },
   {
-    "id": 3,
+    "id": 4,
     "name": "sharedSwitch",
     "slices": [
       {
@@ -79,7 +79,7 @@
           "h6"
         ],
         
-        "minBandwidth": 100.0
+        "maxBandwidth":100
       },
       {
         "devices": [
@@ -88,12 +88,12 @@
           "s2",
           "h3"
         ],
-        "minBandwidth": 100.0
+        "maxBandwidth":100
       }
     ]
   },
   {
-    "id": 3,
+    "id": 5,
     "name": "sharedLink",
     "slices": [
       {
@@ -103,7 +103,7 @@
           "s3",
           "h6"
         ],
-        "minBandwidth": 70.0
+        "maxBandwidth": 70
       },
       {
         "devices": 
@@ -113,7 +113,7 @@
           "s3",
           "h5"
         ],
-        "minBandwidth": 30.0
+        "maxBandwidth": 30
       }
       
     ]

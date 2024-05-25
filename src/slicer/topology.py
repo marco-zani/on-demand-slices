@@ -30,7 +30,7 @@ class TopologyStruct:
         max_perc = []
         for slice in prf.slices:   
             hosts = []
-            max_perc.append(int((slice['minBandwidth'])/10))
+            max_perc.append((slice['maxBandwidth'])/10)
             for dev in slice['devices']:
                 if dev[0] == 'h':
                     hosts.append(dev)
@@ -42,7 +42,7 @@ class TopologyStruct:
             portsTable = self.convertPorts(forwardingTable)
             conf.append((hosts, fw.extractSwitches(portsTable)))
         
-        fw.add_min_bandwidth(conf, max_perc)
+        fw.add_max_bandwidth(conf, max_perc)
         return conf
     
     def convertPorts(self, table):
@@ -51,7 +51,7 @@ class TopologyStruct:
             for nextHop, reachableHosts in table[key]:
                 port = self.getPort(key,nextHop)
                 if key not in out:
-                    out.update({key:[((port,1.0), reachableHosts)]})
+                    out.update({key:[((port,10), reachableHosts)]})
                 else:
-                    out[key].append(((port,1.0),reachableHosts))
+                    out[key].append(((port,10),reachableHosts))
         return out

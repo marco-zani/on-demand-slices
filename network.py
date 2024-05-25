@@ -4,7 +4,7 @@ from mininet.node import OVSKernelSwitch, RemoteController, Node
 from mininet.cli import CLI
 from mininet.link import TCLink
 import os
-import pickle
+import dill
 
 
 class HostDevice:
@@ -69,7 +69,7 @@ def qos(switches):
         for i in range(1,11):
             i = str(i)
             queuecmd += (
-                "-- --id=@q" + i + " create queue other-config:max-rate=" + i + "00000000 "
+                "-- --id=@q" + i + " create queue other-config:max-rate=" + i + "00000 "
             )
         os.popen(queuecmd)
 
@@ -116,7 +116,7 @@ def listIp(net):
             )
 
     with open("devices", "wb") as f:
-        f.write(pickle.dumps(conv))
+        f.write(dill.dumps(conv))
     
 
 

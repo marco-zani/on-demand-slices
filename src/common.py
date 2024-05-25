@@ -1,3 +1,5 @@
+from math import floor
+
 UDP_IP = "127.0.0.1"
 UDP_PORT = 53550
 BUFFER_SIZE = 2048
@@ -22,15 +24,21 @@ def get_children(obj):
 
     return out
 
-def splitArray(arr):
-    splitIndex = len(arr) // 2
-    while splitIndex < len(arr) and (
-        arr[splitIndex] != "\n" or arr[splitIndex + 1] != "\n"
-    ):
-        splitIndex += 1
+def splitArray(arr:str):
+    newLines = floor((arr.count("\n")-4)/2) -1
+    index = 0
+    while index < len(arr) and newLines > 0:
+        if arr[index] == "\n":
+            newLines -= 1
+        index += 1
 
-    outLeft = arr[:splitIndex]
-    outRight = arr[splitIndex + 2 :]
+    while index < len(arr) and (
+        arr[index] != "\n" or arr[index + 1] != "\n"
+    ):
+        index += 1
+
+    outLeft = arr[:index]
+    outRight = arr[index + 2 :]
 
     return outLeft, outRight
 

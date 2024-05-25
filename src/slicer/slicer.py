@@ -4,7 +4,7 @@ from time import sleep
 from os.path import exists
 from os import remove as deleteFile
 from src.slicer.topology import TopologyStruct
-import socket, pickle
+import socket, dill
 from src.common import UDP_IP, UDP_PORT
 
 def uploadData(file_path):
@@ -17,9 +17,9 @@ def saveData(data, file_path):
         json.dump(data, file, indent=2)
 
 class Slice():
-    def __init__(self, devices, minBandwidth) -> None:
+    def __init__(self, devices, maxBandwidth) -> None:
         self.devices = devices
-        self.minBandwidth = minBandwidth
+        self.maxBandwidth = maxBandwidth
 
 class Profile:
     def __init__(self,id, name, slices):
@@ -65,7 +65,7 @@ class Slicer:
             t = el.split(' ')
             self.topology.addLink(t[0],t[1].replace('eth',''),t[2],t[3].replace('eth',''))
         f.close()
-        #deleteFile(fileName)
+        deleteFile(fileName)
 
     def sendDevices(self):
         fileName = 'devices'
@@ -74,13 +74,14 @@ class Slicer:
         f = open(fileName, "rb")
         msg = f.read()
         f.close()
-        #deleteFile(fileName)
+        deleteFile(fileName)
 
         self.sendUDP(msg)
 
     def toggleProfile(self, id):
+        prevId = self.sliceActive
         self.sliceActive = int(id)
         self.topology.activeConfiguration = self.topology.convertProfileInConfiguration(self.profiles[id])
-        print(self.topology.activeConfiguration)
-        data = pickle.dumps(self.topology.activeConfiguration)
+        print("Switched from", self.profiles[prevId].name, "to", self.profiles[id].name+": { ... }")
+        data = dill.dumps(self.topology.activeConfiguration)
         self.sendUDP(data)
