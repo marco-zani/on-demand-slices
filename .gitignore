@@ -3,3 +3,4 @@ __pycache__/
 links
 macs
 devices
+.gitignore

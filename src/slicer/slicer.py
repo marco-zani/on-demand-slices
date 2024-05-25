@@ -44,7 +44,7 @@ class Slicer:
     def getProfiles(self):
         out = []
 
-        with open('profiles.json', 'r') as file:
+        with open('data/profiles.json', 'r') as file:
             data = json.load(file)
 
         for el in data:
