@@ -1,27 +1,46 @@
-# on-demand-slices
-This project is in it's embrio phase. The objective is to create a way enable and disable network slicing in the most autonomous way possible
+# On Demand Slices
+This is an academic project for the Softwarized and Virtualized Mobile Networks / Netowrking Module II course at the University of Trento.
 
+## Project Goal
+The main goal of the project is to implement a network slicing approach to enable dynamic activation/de-activation of network slices via CLI/GUI commands
 
-# To do
-## Marco
-- [X] multi-processing
-  - [X] funzione send() per inviare la configurazione dallo slicer al controller
-- [X] creazione file contenente i links
-- [X] function to load function
-- [X] convert profile into controller configuration
-- [ ] passare in conf la percentuale sulla porta
+## Setup the environment
+The project relies on ComNetsEmu, a testbed and network emulator that already provides all the dependencies we need to start the Ryu application and the MiniNET topology. More information about it can be found [here](https://git.comnets.net/public-repo/comnetsemu). We personally installed it by cloning the repository and using Vagrant. If installed in this way, the project can be easily started by following these steps:
 
-## Francesco
-- [X] funzione listNetElements(): elenca tutti i dispositivi e link sulla rete
-- [X] listSlicingProfiles(): elenca tutti i profili salvati, e quali dispositivi ne fanno parte
-- [X] listActiveProfiles(): mostra la configurazione attuale della rete, con la divisione delle diverse slices
-- [X] toggleProfile(): modifica la configurazione attiva rispettando il profilo assegnato (o disattivato)
-- [X] function notifyAllSwitch (flush tables)
-- [ ] QoS
-## Alessio
-- [X] createNewProfile(): --> OK
-- [X] rendere il controller funzionante
-- [ ] Correggi la funzione di getPort
-- [ ] Report
+1. Start the Virtual Machine and get access to a shell
+2. Start the Vagrant Machine of comnetsemu
+3. Navigate to the directory:
+    ```
+    cd comnetsemu/app/realizing_network_slicing/
+    ```
+4. Clone the repository: 
+    ```
+    git clone https://github.com/marco-zani/on-demand-slices.git
+    ```
+5. Move inside the repo directory: 
+    ```
+    cd on-demand-slices
+    ```
+6. Start the mininet network by executing
+    ```
+    sudo python3 network.py
+    ```
+7. Open another terminal to run the Ryu controller
+    ```
+    ryu-manager controller.py
+    ```
+8. Open the third terminal, outside Vagrant machine, and run
+    ```
+    python3 net-slice.py
+    ```
+This will run the GUI of the application.
 
-  
+## UI functionalities
+Through the UI realised using the GTK module, it is possible to navigate through the different sections:
+- Network View: represents the network with devices and connections
+- Active Slice View: show the active profile and enable the selection of the profile through a dropdown menu. In the descriptor is shown the devices and the connections of the different slices included in that profile.
+- Profiles View: show all the possible profiles with the list of slices included. In the bottom there is the button "Create new profile"
+- Create new profile: enable to create a custom profile with custom slices and setting the QoS.
+
+## Report
+For all the technical details please refer to the full report inside the docs directory of this repo.
