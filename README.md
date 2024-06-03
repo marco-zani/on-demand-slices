@@ -9,27 +9,23 @@ The project relies on ComNetsEmu, a testbed and network emulator that already pr
 
 1. Start the Virtual Machine and get access to a shell
 2. Start the Vagrant Machine of comnetsemu
-3. Navigate to the directory:
-    ```
-    cd comnetsemu/app/realizing_network_slicing/
-    ```
-4. Clone the repository: 
+3. Clone the repository: 
     ```
     git clone https://github.com/marco-zani/on-demand-slices.git
     ```
-5. Move inside the repo directory: 
+4. Move inside the repo directory: 
     ```
     cd on-demand-slices
     ```
-6. Start the mininet network by executing
+5. Start the mininet network by executing
     ```
     sudo python3 network.py
     ```
-7. Open another terminal to run the Ryu controller
+6. Open another terminal to run the Ryu controller
     ```
     ryu-manager controller.py
     ```
-8. Open the third terminal, outside Vagrant machine, and run
+7. Open the third terminal, outside Vagrant machine, and run
     ```
     python3 net-slice.py
     ```
