@@ -5,7 +5,15 @@ This is an academic project for the Softwarized and Virtualized Mobile Networks 
 The main goal of the project is to implement a network slicing approach to enable dynamic activation/de-activation of network slices via CLI/GUI commands
 
 ## Setup the environment
-The project relies on ComNetsEmu, a testbed and network emulator that already provides all the dependencies we need to start the Ryu application and the MiniNET topology. More information about it can be found [here](https://git.comnets.net/public-repo/comnetsemu). We personally installed it by cloning the repository and using Vagrant. If installed in this way, the project can be easily started by following these steps:
+The project relies on ComNetsEmu, a testbed and network emulator that already provides all the dependencies we need to start the Ryu application and the MiniNET topology. More information about it can be found [here](https://git.comnets.net/public-repo/comnetsemu). We personally installed it by cloning the repository and using Vagrant. 
+
+The only necessary library to install before executing this demo is `dill`, which can be installed by running the command:
+```
+pip install dill
+```
+
+
+If installed in this way, the project can be easily started by following these steps:
 
 1. Start the Virtual Machine and get access to a shell
 2. Start the Vagrant Machine of comnetsemu
